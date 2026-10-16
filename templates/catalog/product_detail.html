@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}{{ product.name }} · Daca Pastelería La Florida{% endblock %}
+{% block meta_description %}{{ product.short_description }}{% endblock %}
+
+{% block extra_head %}
+<!-- JSON-LD Structured Data for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "image": [
+    {% for img in product.gallery_images %}"{{ request.scheme }}://{{ request.get_host }}{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}
+  ],
+  "description": "{{ product.short_description }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "Daca Pastelería"
+  },
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "CLP",
+    "price": "{{ product.min_price }}",
+    "availability": "https://schema.org/InStock",
+    "itemCondition": "https://schema.org/NewCondition"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div 
+  x-data="{
+    activeImg: 0,
+    images: [{% for img in product.gallery_images %}'{{ img.image.url }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+    isCake: {{ product.is_cake|yesno:'true,false' }},
+    selectedVariantId: '{% if active_variants %}{{ active_variants.first.id }}{% endif %}',
+    selectedPrice: {{ active_variants.first.price|default:product.base_price }},
+    quantity: 1,
+    notes: '',
+    activeTab: 'desc',
+    selectedAddons: {},
+    buttonState: 'idle',
+    get addonsTotal() {
+      return Object.values(this.selectedAddons).reduce((acc, curr) => acc + (curr ? curr.price : 0), 0);
+    },
+    get itemTotal() {
+      return (this.selectedPrice + this.addonsTotal) * this.quantity;
+    },
+    toggleAddon(id, price) {
+      const key = String(id);
+      if (this.selectedAddons[key]) {
+        delete this.selectedAddons[key];
+      } else {
+        this.selectedAddons[key] = { id: id, price: parseInt(price) };
+      }
+    }
+  }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+>
+  <!-- Breadcrumb -->
+  <nav class="flex items-center text-xs text-cocoa/60 mb-6 gap-2">
+    <a href="{% url 'core:home' %}" class="hover:text-heart">Inicio</a>
+    <span>/</span>
+    <a href="{% url 'catalog:product_list' %}" class="hover:text-heart">Catálogo</a>
+    <span>/</span>
+    <a href="{% url 'catalog:category_detail' slug=product.category.slug %}" class="hover:text-heart">{{ product.category.name }}</a>
+    <span>/</span>
+    <span class="text-cocoa font-medium truncate max-w-xs">{{ product.name }}</span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    
+    <!-- Left Column: Gallery (2-3+ Photos) -->
+    <div class="lg:col-span-7 space-y-4">
+      <!-- Main Featured Image -->
+      <div class="relative w-full aspect-square rounded-3xl overflow-hidden bg-white shadow-soft border border-kraft/20 group">
+        <template x-for="(imgSrc, idx) in images" :key="idx">
+          <img 
+            :src="imgSrc" 
+            :alt="'{{ product.name }} - Foto ' + (idx + 1)"
+            x-show="activeImg === idx"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          >
+        </template>
+
+        <!-- Floating Badges -->
+        <div class="absolute top-4 left-4 flex flex-col gap-2 z-10">
+          {% if product.is_new %}<span class="badge-gold">Receta Nueva</span>{% endif %}
+          {% if product.is_featured %}<span class="badge-heart">Favorito de la Casa</span>{% endif %}
+        </div>
+      </div>
+
+      <!-- Thumbnail Strip -->
+      {% if product.gallery_images|length > 1 %}
+      <div class="flex items-center gap-3 overflow-x-auto pb-2">
+        {% for img in product.gallery_images %}
+        <button 
+          type="button"
+          @click="activeImg = {{ forloop.counter0 }}"
+          class="relative w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all flex-shrink-0"
+          :class="activeImg === {{ forloop.counter0 }} ? 'border-heart shadow-md scale-105' : 'border-kraft/20 opacity-70 hover:opacity-100'"
+        >
+          <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="w-full h-full object-cover">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Right Column: Product Configuration & Add to Cart -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Category & Title -->
+      <div>
+        <a href="{% url 'catalog:category_detail' slug=product.category.slug %}" class="text-xs uppercase font-bold tracking-widest text-kraft-darker hover:underline">
+          {{ product.category.name }}
+        </a>
+        <h1 class="font-serif text-3xl sm:text-4xl font-bold text-cocoa mt-1 leading-snug">
+          {{ product.name }}
+        </h1>
+        <p class="text-sm text-cocoa/75 mt-2 leading-relaxed">
+          {{ product.short_description }}
+        </p>
+      </div>
+
+      <!-- Live Price Display -->
+      <div class="p-4 rounded-2xl bg-cream-100 border border-kraft/25 flex items-baseline justify-between">
+        <span class="text-xs uppercase tracking-wider text-kraft-darker font-bold">Precio Total</span>
+        <div class="flex items-baseline gap-1">
+          <span class="font-serif text-3xl font-extrabold text-heart" x-text="'$' + itemTotal.toLocaleString('es-CL')">
+            {{ product.min_price|clp }}
+          </span>
+          <span class="text-xs font-semibold text-cocoa/60">CLP</span>
+        </div>
+      </div>
+
+      <!-- Add to Cart Form -->
+      <form 
+        hx-post="{% url 'cart:add' %}"
+        hx-target="#cart-drawer-container"
+        hx-disabled-elt="#btn-add-to-cart"
+        @submit="
+          $dispatch('open-cart');
+          if (window.Alpine && Alpine.store('cart')) {
+            Alpine.store('cart').optimisticAdd(quantity);
+          }
+          buttonState = 'loading';
+        "
+        @htmx:after-request="
+          if ($event.detail.successful) {
+            buttonState = 'success';
+            setTimeout(() => buttonState = 'idle', 1800);
+          } else {
+            if (window.Alpine && Alpine.store('cart')) {
+              Alpine.store('cart').revert();
+            }
+            buttonState = 'error';
+            setTimeout(() => buttonState = 'idle', 2500);
+          }
+        "
+        class="space-y-6"
+      >
+        {% csrf_token %}
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+        <input type="hidden" name="variant_id" :value="selectedVariantId">
+        <input type="hidden" name="quantity" :value="quantity">
+
+        <!-- Portion Selector for Cakes -->
+        {% if product.is_cake and active_variants %}
+        <div class="space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa flex items-center justify-between">
+            <span>Selecciona Tamaño / Porciones:</span>
+            <span class="text-kraft-darker font-normal capitalize">Recomendación Daca</span>
+          </label>
+          <div class="grid grid-cols-2 gap-2.5">
+            {% for variant in active_variants %}
+            <button
+              type="button"
+              @click="selectedVariantId = '{{ variant.id }}'; selectedPrice = {{ variant.price }}"
+              class="p-3 rounded-2xl border text-left transition-all relative flex flex-col justify-between"
+              :class="selectedVariantId === '{{ variant.id }}' ? 'border-heart bg-blush/40 shadow-sm ring-1 ring-heart' : 'border-kraft/25 bg-white hover:border-kraft'"
+            >
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-sm text-cocoa">{{ variant.name }}</span>
+                <span class="text-xs font-bold text-heart">{{ variant.price|clp }}</span>
+              </div>
+              {% if variant.dimensions %}
+              <span class="text-[11px] text-cocoa/60 mt-1 block">{{ variant.dimensions }}</span>
+              {% endif %}
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% elif active_variants %}
+        <!-- Simple Format / Quantity Variants -->
+        <div class="space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa">
+            Formato / Presentación:
+          </label>
+          <div class="grid grid-cols-2 gap-2.5">
+            {% for variant in active_variants %}
+            <button
+              type="button"
+              @click="selectedVariantId = '{{ variant.id }}'; selectedPrice = {{ variant.price }}"
+              class="p-3 rounded-2xl border text-left transition-all"
+              :class="selectedVariantId === '{{ variant.id }}' ? 'border-heart bg-blush/40 shadow-sm ring-1 ring-heart' : 'border-kraft/25 bg-white hover:border-kraft'"
+            >
+              <span class="font-bold text-sm text-cocoa block">{{ variant.name }}</span>
+              <span class="text-xs text-heart font-bold">{{ variant.price|clp }}</span>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Quantity Selector (for non-cake or multiple items) -->
+        <div class="flex items-center gap-4">
+          <label class="text-xs font-bold uppercase tracking-wider text-cocoa">Cantidad:</label>
+          <div class="flex items-center border border-kraft/30 rounded-full bg-white overflow-hidden shadow-inner">
+            <button 
+              type="button" 
+              @click="if (quantity > 1) quantity--" 
+              class="w-9 h-9 flex items-center justify-center text-cocoa hover:bg-kraft/15 font-bold text-base transition-colors"
+            >−</button>
+            <span class="px-4 text-sm font-bold text-cocoa" x-text="quantity"></span>
+            <button 
+              type="button" 
+              @click="quantity++" 
+              class="w-9 h-9 flex items-center justify-center text-cocoa hover:bg-kraft/15 font-bold text-base transition-colors"
+            >+</button>
+          </div>
+        </div>
+
+        <!-- Dedication Message (For cakes) -->
+        {% if product.is_cake %}
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa">
+            Dedicatoria en la torta (opcional):
+          </label>
+          <input 
+            type="text" 
+            name="notes"
+            x-model="notes"
+            maxlength="80"
+            placeholder="Ej: ¡Feliz Cumpleaños Valentina! (Máx. 40 caracteres)" 
+            class="w-full rounded-2xl border-kraft/30 text-xs py-2.5 px-3.5 focus:ring-heart focus:border-heart text-cocoa bg-white"
+          >
+          <p class="text-[10px] text-cocoa/50">Escribiremos tu mensaje a mano con crema sobre la torta o placa de azúcar.</p>
+        </div>
+        {% endif %}
+
+        <!-- Addons Showcase / Selector -->
+        {% if addons %}
+        <div class="pt-4 border-t border-kraft/15 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="block text-xs font-bold uppercase tracking-wider text-cocoa">
+              Agrega un detalle especial para tu celebración:
+            </span>
+            <span class="text-[11px] text-kraft-darker font-medium">Opcional</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {% for addon in addons %}
+            <label 
+              class="p-3 rounded-2xl border cursor-pointer transition-all flex items-center justify-between gap-3 select-none"
+              :class="selectedAddons['{{ addon.id }}'] ? 'border-heart bg-blush/40 shadow-sm ring-1 ring-heart' : 'border-kraft/25 bg-white hover:border-kraft/60'"
+            >
+              <div class="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  name="addon_ids" 
+                  value="{{ addon.id }}"
+                  @change="toggleAddon('{{ addon.id }}', {{ addon.price }})"
+                  :checked="!!selectedAddons['{{ addon.id }}']"
+                  class="rounded text-heart focus:ring-heart h-4 w-4 border-kraft/30"
+                >
+                <div class="flex flex-col">
+                  <span class="font-bold text-xs text-cocoa">{{ addon.name }}</span>
+                  {% if addon.description %}
+                  <span class="text-[10px] text-cocoa/60 line-clamp-1">{{ addon.description }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <span class="font-bold text-xs text-heart flex-shrink-0">+{{ addon.price|clp }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Minimum Anticipation Notice -->
+        <div class="p-3.5 rounded-2xl bg-kraft/10 border border-kraft/20 flex items-start gap-3 text-xs text-cocoa/80">
+          <svg class="w-5 h-5 text-kraft-darker flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <strong class="font-bold text-cocoa block">Tiempo de Preparación: {{ product.preparation_time }}</strong>
+            <span>Para asegurar la frescura y terminaciones artesanales de este producto.</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button 
+          type="submit" 
+          class="btn-primary w-full py-4 text-base font-bold shadow-heart flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          id="btn-add-to-cart"
+          :disabled="buttonState === 'loading'"
+        >
+          <template x-if="buttonState === 'idle'">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+              <span>Agregar al Carrito</span>
+              <span class="text-xs opacity-80" x-text="'(' + '$' + itemTotal.toLocaleString('es-CL') + ')'"></span>
+            </div>
+          </template>
+          <template x-if="buttonState === 'loading'">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 animate-spin text-white" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+              <span>Agregando al carrito...</span>
+            </div>
+          </template>
+          <template x-if="buttonState === 'success'">
+            <div class="flex items-center gap-2 text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>¡Agregado al carrito!</span>
+            </div>
+          </template>
+          <template x-if="buttonState === 'error'">
+            <div class="flex items-center gap-2 text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              <span>Error al agregar</span>
+            </div>
+          </template>
+        </button>
+      </form>
+
+      <!-- Tabs / Information Accordion -->
+      <div class="pt-6 border-t border-kraft/20 space-y-3">
+        <div class="flex border-b border-kraft/20 gap-4 text-xs font-bold uppercase tracking-wider">
+          <button 
+            @click="activeTab = 'desc'" 
+            class="pb-2 border-b-2 transition-colors"
+            :class="activeTab === 'desc' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+          >
+            Descripción
+          </button>
+          <button 
+            @click="activeTab = 'alergias'" 
+            class="pb-2 border-b-2 transition-colors"
+            :class="activeTab === 'alergias' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+          >
+            Alérgenos & Conservación
+          </button>
+        </div>
+
+        <div x-show="activeTab === 'desc'" class="text-sm text-cocoa/80 leading-relaxed py-2">
+          {{ product.description|linebreaks }}
+        </div>
+
+        <div x-show="activeTab === 'alergias'" class="text-xs text-cocoa/80 space-y-2 py-2" style="display: none;">
+          <p><strong>Alérgenos:</strong> {{ product.allergens }}</p>
+          <p><strong>Conservación:</strong> {{ product.storage_instructions }}</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+  <div class="mt-20 pt-12 border-t border-kraft/20">
+    <div class="text-center max-w-xl mx-auto mb-10">
+      <span class="badge-heart mb-2">Recomendaciones</span>
+      <h2 class="font-serif text-3xl font-bold text-cocoa">También te podría encantar</h2>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for rel in related_products %}
+        {% include 'catalog/partials/_product_card.html' with product=rel %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

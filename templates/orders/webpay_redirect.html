@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Conectando con Webpay Plus · Daca Pastelería{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-24 text-center">
+  <div class="bg-white rounded-3xl p-8 sm:p-12 shadow-warm border border-kraft/20 space-y-6">
+    <div class="w-20 h-20 mx-auto rounded-full bg-blush flex items-center justify-center text-heart animate-pulse">
+      <svg class="w-10 h-10 animate-spin text-heart" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+    </div>
+
+    <div class="space-y-2">
+      <span class="badge-heart">Transbank Seguro</span>
+      <h1 class="font-serif text-2xl font-bold text-cocoa">Conectando con Webpay Plus</h1>
+      <p class="text-sm text-cocoa/70">
+        Te estamos redirigiendo de forma segura al portal oficial de pagos de Transbank para completar tu compra.
+      </p>
+    </div>
+
+    <!-- Fallback submit button in case JavaScript is disabled -->
+    <form id="webpay-form" method="post" action="{{ url }}" class="pt-4">
+      <input type="hidden" name="token_ws" value="{{ token }}">
+      <button type="submit" class="btn-primary text-xs py-3 px-6 shadow-heart">
+        Continuar a Webpay si no redirige automáticamente →
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit form immediately
+    document.getElementById('webpay-form').submit();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Solicitud de Torta Enviada {{ custom_order.order_number }} · Daca Pastelería{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <div class="bg-white rounded-3xl p-8 sm:p-12 shadow-warm border border-kraft/20 text-center space-y-6">
+    
+    <div class="w-20 h-20 rounded-full bg-cream-100 border border-kraft/30 flex items-center justify-center text-heart mx-auto text-3xl animate-heart-float">
+      ❤
+    </div>
+
+    <span class="badge-heart">Solicitud Recibida</span>
+    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      ¡Recibimos tu Proyecto de Torta!
+    </h1>
+    <p class="text-sm sm:text-base text-cocoa/75 max-w-lg mx-auto">
+      Tu solicitud ha quedado registrada con el número <strong class="text-heart font-bold">{{ custom_order.order_number }}</strong>. Nuestras maestras pasteleras revisarán tus fotos de inspiración y te responderán con la cotización final.
+    </p>
+
+    <!-- Details Box -->
+    <div class="bg-cream-100 p-6 rounded-2xl border border-kraft/20 text-left text-xs sm:text-sm space-y-2.5">
+      <div class="flex justify-between"><span>Estilo:</span><strong>{{ custom_order.cake_style.name }}</strong></div>
+      <div class="flex justify-between"><span>Tamaño:</span><strong>{{ custom_order.portions }} Personas</strong></div>
+      <div class="flex justify-between"><span>Sabores:</span><strong>{{ custom_order.sponge_flavor }} / {{ custom_order.filling_flavor }}</strong></div>
+      <div class="flex justify-between"><span>Fecha Solicitada:</span><strong class="text-heart">{{ custom_order.desired_date }}</strong></div>
+      {% if custom_order.message_on_cake %}
+      <div class="flex justify-between"><span>Dedicatoria:</span><strong>"{{ custom_order.message_on_cake }}"</strong></div>
+      {% endif %}
+    </div>
+
+    <!-- WhatsApp CTA -->
+    <div class="pt-4 max-w-md mx-auto">
+      <a 
+        href="{{ whatsapp_url }}" 
+        target="_blank" 
+        rel="noopener"
+        class="inline-flex items-center justify-center gap-3 w-full py-4 px-6 rounded-full font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 transition-all transform active:scale-95 text-base"
+      >
+        <span>Enviar a WhatsApp para Agilizar</span>
+      </a>
+      <span class="text-[11px] text-cocoa/60 mt-1 block">Abre el chat con el resumen automático de tu torta personalizada.</span>
+    </div>
+
+    <div class="pt-4">
+      <a href="{% url 'core:home' %}" class="btn-outline text-xs py-2 px-6">
+        Volver al Inicio
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

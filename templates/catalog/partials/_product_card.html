@@ -1,0 +1,146 @@
+{% load daca_tags %}
+
+<div 
+  x-data="{ currentImg: 0, images: [{% for img in product.gallery_images %}'{{ img.image.url }}'{% if not forloop.last %},{% endif %}{% endfor %}] }"
+  class="group relative bg-white rounded-3xl p-4 shadow-soft border border-kraft/15 hover:shadow-warm transition-all duration-300 flex flex-col justify-between"
+>
+  <!-- Card Image Container with Hover Transition -->
+  <div class="relative w-full aspect-square rounded-2xl overflow-hidden bg-cream-100 mb-4">
+    
+    <!-- Badges -->
+    <div class="absolute top-3 left-3 z-10 flex flex-col gap-1.5">
+      {% if product.is_new %}
+      <span class="badge-gold">Nuevo</span>
+      {% endif %}
+      {% if product.is_featured %}
+      <span class="badge-heart">Destacado</span>
+      {% endif %}
+      {% if product.is_cake %}
+      <span class="badge-kraft">Torta</span>
+      {% endif %}
+    </div>
+
+    <!-- Images with hover flip / slide -->
+    <a href="{{ product.get_absolute_url }}" class="block w-full h-full">
+      {% with imgs=product.gallery_images %}
+        {% if imgs %}
+          <!-- Primary Image -->
+          <img 
+            src="{{ imgs.0.image.url }}" 
+            alt="{{ product.name }}"
+            class="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-105"
+            :class="{ 'opacity-0': currentImg !== 0, 'opacity-100': currentImg === 0 }"
+            loading="lazy"
+          >
+          <!-- Second image on hover (if exists) -->
+          {% if imgs|length > 1 %}
+          <img 
+            src="{{ imgs.1.image.url }}" 
+            alt="{{ product.name }} - Detalle"
+            class="absolute inset-0 w-full h-full object-cover transition-all duration-500"
+            :class="{ 'opacity-100': currentImg === 1, 'opacity-0': currentImg !== 1 }"
+            @mouseenter="currentImg = 1"
+            @mouseleave="currentImg = 0"
+            loading="lazy"
+          >
+          {% endif %}
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center bg-blush text-heart">
+            <svg class="w-12 h-12 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </div>
+        {% endif %}
+      {% endwith %}
+    </a>
+
+    <!-- Mobile Mini Dot Indicators (if 2+ images) -->
+    {% if product.images.count > 1 %}
+    <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10 md:hidden">
+      {% for img in product.gallery_images %}
+      <span 
+        class="w-1.5 h-1.5 rounded-full transition-all"
+        :class="currentImg === {{ forloop.counter0 }} ? 'bg-heart w-3' : 'bg-white/70'"
+      ></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Content & Details -->
+  <div class="flex-1 flex flex-col justify-between">
+    <div>
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-kraft-darker">
+        {{ product.category.name }}
+      </span>
+      <h3 class="font-serif text-lg font-bold text-cocoa group-hover:text-heart transition-colors line-clamp-1 mt-0.5">
+        <a href="{{ product.get_absolute_url }}">{{ product.name }}</a>
+      </h3>
+      <p class="text-xs text-cocoa/70 line-clamp-2 mt-1 leading-relaxed">
+        {{ product.short_description }}
+      </p>
+    </div>
+
+    <!-- Pricing and Quick CTA -->
+    <div class="pt-4 mt-2 border-t border-kraft/10 flex items-center justify-between">
+      <div>
+        {% if product.is_cake and product.has_variants %}
+        <span class="text-[10px] text-cocoa/60 uppercase block">Desde</span>
+        {% endif %}
+        <span class="font-bold text-base text-cocoa">
+          {{ product.min_price|clp }}
+        </span>
+      </div>
+
+      <div x-data="{ quickVariant: '{% if product.has_variants %}{{ product.variants.first.id }}{% endif %}', cardLoading: false }" class="flex items-center gap-1.5">
+        {% if product.has_variants and product.variants.count > 1 %}
+        <select 
+          x-model="quickVariant" 
+          class="text-[11px] py-1 px-2 rounded-xl border-kraft/30 bg-cream-50 text-cocoa font-medium focus:ring-heart focus:border-heart"
+          aria-label="Seleccionar porción para {{ product.name }}"
+        >
+          {% for v in product.variants.all %}
+          {% if v.is_active %}
+          <option value="{{ v.id }}">{{ v.name }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+        {% endif %}
+
+        <form 
+          hx-post="{% url 'cart:add' %}" 
+          hx-target="#cart-drawer-container"
+          hx-disabled-elt="find button"
+          @submit="
+            $dispatch('open-cart');
+            if (window.Alpine && Alpine.store('cart')) {
+              Alpine.store('cart').optimisticAdd(1);
+            }
+            cardLoading = true;
+          "
+          @htmx:after-request="cardLoading = false"
+          class="inline"
+        >
+          {% csrf_token %}
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          {% if product.has_variants %}
+          <input type="hidden" name="variant_id" :value="quickVariant">
+          {% endif %}
+          <input type="hidden" name="quantity" value="1">
+          <button 
+            type="submit" 
+            :disabled="cardLoading"
+            class="p-2 rounded-full bg-cream-100 hover:bg-heart hover:text-white text-cocoa border border-kraft/30 shadow-sm transition-all duration-300 transform active:scale-90 disabled:opacity-50 flex items-center justify-center"
+            title="Agregar {{ product.name }} al carrito"
+            aria-label="Agregar {{ product.name }} al carrito"
+          >
+            <template x-if="!cardLoading">
+              <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            </template>
+            <template x-if="cardLoading">
+              <svg class="w-4 h-4 animate-spin text-heart" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+            </template>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

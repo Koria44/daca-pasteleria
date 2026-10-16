@@ -1,0 +1,80 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}{% if product %}Editar Producto: {{ product.name }}{% else %}Nuevo Producto{% endif %}{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl space-y-6">
+
+  <div class="flex items-center justify-between">
+    <a href="{% url 'dashboard:products_list' %}" class="btn-outline text-xs py-2 px-4 bg-white">
+      ← Volver al Listado
+    </a>
+  </div>
+
+  <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-xs font-bold text-cocoa mb-1">Nombre del Producto *</label>
+        <input type="text" name="name" required value="{{ product.name|default:'' }}" placeholder="Ej: Torta Red Velvet" class="w-full rounded-2xl border-slate-200 text-sm py-2 px-3.5 bg-slate-50 font-bold">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Categoría *</label>
+          <select name="category" required class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Precio Base (CLP) *</label>
+          <input type="number" name="base_price" required value="{{ product.base_price|default:'' }}" placeholder="22990" class="w-full rounded-2xl border-slate-200 text-sm py-2 px-3.5 bg-slate-50 font-bold text-heart">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-cocoa mb-1">Descripción Corta *</label>
+        <input type="text" name="short_description" required value="{{ product.short_description|default:'' }}" placeholder="Breve resumen para tarjetas..." class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3.5 bg-slate-50">
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-cocoa mb-1">Descripción Detallada *</label>
+        <textarea name="description" rows="4" required class="w-full rounded-2xl border-slate-200 text-xs p-3 bg-slate-50" placeholder="Ingredientes, capas, textura...">{{ product.description|default:'' }}</textarea>
+      </div>
+
+      <!-- Checkboxes -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="is_cake" {% if product.is_cake %}checked{% endif %} class="rounded text-heart focus:ring-heart">
+          <span class="font-bold text-cocoa">¿Es torta?</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="is_featured" {% if product.is_featured %}checked{% endif %} class="rounded text-heart focus:ring-heart">
+          <span class="font-bold text-cocoa">Destacado</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="is_new" {% if product.is_new %}checked{% endif %} class="rounded text-heart focus:ring-heart">
+          <span class="font-bold text-cocoa">Nuevo</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" name="is_active" {% if product %}{% if product.is_active %}checked{% endif %}{% else %}checked{% endif %} class="rounded text-heart focus:ring-heart">
+          <span class="font-bold text-cocoa">Activo en tienda</span>
+        </label>
+      </div>
+
+      <div class="pt-4 flex justify-end gap-3">
+        <a href="{% url 'dashboard:products_list' %}" class="btn-outline text-xs py-2.5 px-6">Cancelar</a>
+        <button type="submit" class="btn-primary text-xs py-2.5 px-8 shadow-sm">
+          Guardar Producto
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

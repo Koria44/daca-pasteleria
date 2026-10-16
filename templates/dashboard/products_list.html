@@ -1,0 +1,81 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}Catálogo de Productos{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <div class="flex items-center justify-between">
+    <span class="text-xs text-slate-500 font-semibold">{{ products.count }} productos en catálogo</span>
+    <a href="{% url 'dashboard:product_create' %}" class="btn-primary text-xs py-2 px-5 shadow-sm">
+      + Crear Nuevo Producto
+    </a>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-100">
+          <tr>
+            <th class="py-3.5 px-6">Foto</th>
+            <th class="py-3.5 px-6">Producto</th>
+            <th class="py-3.5 px-6">Categoría</th>
+            <th class="py-3.5 px-6">Precio Base</th>
+            <th class="py-3.5 px-6">Opciones</th>
+            <th class="py-3.5 px-6">Estado</th>
+            <th class="py-3.5 px-6 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-cocoa">
+          {% for p in products %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-3 px-6">
+              {% if p.main_image %}
+              <img src="{{ p.main_image.image.url }}" alt="{{ p.name }}" class="w-12 h-12 rounded-xl object-cover border border-slate-200">
+              {% else %}
+              <div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-heart">❤</div>
+              {% endif %}
+            </td>
+            <td class="py-3 px-6">
+              <strong class="font-bold text-cocoa block text-sm">{{ p.name }}</strong>
+              <div class="flex gap-1.5 mt-0.5">
+                {% if p.is_cake %}<span class="badge-kraft text-[9px]">Torta</span>{% endif %}
+                {% if p.is_featured %}<span class="badge-heart text-[9px]">Destacado</span>{% endif %}
+                {% if p.is_new %}<span class="badge-gold text-[9px]">Nuevo</span>{% endif %}
+              </div>
+            </td>
+            <td class="py-3 px-6 font-medium text-slate-600">
+              {{ p.category.name }}
+            </td>
+            <td class="py-3 px-6 font-bold text-sm">
+              {{ p.base_price|clp }}
+            </td>
+            <td class="py-3 px-6 text-slate-500">
+              {{ p.variants.count }} variantes
+            </td>
+            <td class="py-3 px-6">
+              <form method="post" action="{% url 'dashboard:product_toggle_active' pk=p.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors {% if p.is_active %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100{% else %}bg-slate-100 text-slate-500 hover:bg-slate-200{% endif %}">
+                  {% if p.is_active %}Activo en Tienda{% else %}Inactivo / Oculto{% endif %}
+                </button>
+              </form>
+            </td>
+            <td class="py-3 px-6 text-right space-x-2">
+              <a href="{% url 'dashboard:product_update' pk=p.pk %}" class="btn-outline text-[11px] py-1 px-3">
+                Editar
+              </a>
+              <a href="{{ p.get_absolute_url }}" target="_blank" class="text-slate-400 hover:text-cocoa text-[11px]" title="Ver en tienda">
+                🔗
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

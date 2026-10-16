@@ -1,0 +1,106 @@
+{% load daca_tags %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Comanda de Producción · {{ order.order_number }}</title>
+  <style>
+    body {
+      font-family: monospace, sans-serif;
+      font-size: 13px;
+      line-height: 1.4;
+      max-width: 320px;
+      margin: 0 auto;
+      padding: 16px;
+      color: #000;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px dashed #000;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .title { font-size: 18px; font-weight: bold; }
+    .subtitle { font-size: 11px; }
+    .section { border-bottom: 1px dashed #000; padding: 8px 0; }
+    .bold { font-weight: bold; }
+    .right { text-align: right; }
+    .item-row { margin-bottom: 6px; }
+    .notice {
+      background: #f0f0f0;
+      padding: 6px;
+      margin-top: 8px;
+      border: 1px solid #000;
+      font-weight: bold;
+    }
+    @media print {
+      body { max-width: 100%; margin: 0; padding: 4px; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom: 12px; text-align: center;">
+    <button onclick="window.print()" style="padding: 8px 16px; font-size: 14px; font-weight: bold; cursor: pointer;">
+      🖨️ IMPRIMIR COMANDA
+    </button>
+  </div>
+
+  <div class="header">
+    <div class="title">DACA PASTELERÍA</div>
+    <div class="subtitle">Rojas Magallanes 055 · La Florida</div>
+    <div class="subtitle">ORDEN DE PRODUCCIÓN</div>
+    <div style="font-size: 16px; font-weight: bold; margin-top: 4px;">{{ order.order_number }}</div>
+  </div>
+
+  <div class="section">
+    <div><strong>FECHA ENTREGA:</strong> <span style="font-size: 15px; font-weight: bold;">{{ order.delivery_date }}</span></div>
+    <div><strong>HORARIO:</strong> {{ order.delivery_time_slot }}</div>
+    <div><strong>TIPO:</strong> {{ order.get_delivery_type_display }}</div>
+    <div><strong>CLIENTE:</strong> {{ order.full_name }}</div>
+    <div><strong>TELÉFONO:</strong> {{ order.phone }}</div>
+    {% if order.delivery_type == 'delivery' %}
+    <div><strong>DIRECCIÓN:</strong> {{ order.address_street }} {{ order.address_details }}, {{ order.commune }}</div>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <div class="bold" style="margin-bottom: 6px;">PRODUCTOS A ELABORAR:</div>
+    {% for item in order.items.all %}
+    <div class="item-row">
+      <div style="font-size: 14px; font-weight: bold;">{{ item.quantity }}x {{ item.product_name }}</div>
+      {% if item.variant_name %}
+      <div style="padding-left: 10px;">[Tamaño: {{ item.variant_name }}]</div>
+      {% endif %}
+      {% if item.notes %}
+      <div class="notice">
+        DEDICATORIA: "{{ item.notes }}"
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if order.customer_notes %}
+  <div class="section">
+    <strong>NOTAS ADICIONALES:</strong>
+    <div>{{ order.customer_notes }}</div>
+  </div>
+  {% endif %}
+
+  <div class="section">
+    <div style="display: flex; justify-content: space-between;">
+      <span>TOTAL PAGADO:</span>
+      <span class="bold">{{ order.total|clp }}</span>
+    </div>
+    <div style="display: flex; justify-content: space-between;">
+      <span>ESTADO PAGO:</span>
+      <span class="bold">{{ order.get_payment_status_display }}</span>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 16px; font-size: 11px;">
+    Horneado con amor · Daca Pastelería
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Página no encontrada (404) · Daca Pastelería{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-24 text-center space-y-6">
+  <div class="w-24 h-24 rounded-full bg-blush flex items-center justify-center text-heart text-4xl mx-auto shadow-warm animate-heart-float">
+    ❤
+  </div>
+  <span class="badge-heart">Error 404</span>
+  <h1 class="font-serif text-4xl sm:text-5xl font-bold text-cocoa">¡Ups! Parece que se nos cayó el glaseado</h1>
+  <p class="text-sm text-cocoa/75">La página que buscas no existe o ha sido movida. Pero no te preocupes, nuestras recetas siguen horneándose frescas.</p>
+  <div class="pt-2">
+    <a href="{% url 'core:home' %}" class="btn-primary text-sm py-3 px-8 shadow-heart">
+      Volver a la Página Principal
+    </a>
+  </div>
+</div>
+{% endblock %}

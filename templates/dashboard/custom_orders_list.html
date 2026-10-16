@@ -1,0 +1,87 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}Gestión de Tortas a Pedido / Personalizadas{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <!-- Status Filter Pills -->
+  <div class="flex items-center gap-2 overflow-x-auto pb-2">
+    <a href="{% url 'dashboard:custom_orders_list' %}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all {% if not current_status %}bg-heart text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-slate-300{% endif %}">
+      Todas las Solicitudes
+    </a>
+    {% for st_code, st_label in STATUS_CHOICES %}
+    <a href="{% url 'dashboard:custom_orders_list' %}?estado={{ st_code }}" class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all {% if current_status == st_code %}bg-heart text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-slate-300{% endif %}">
+      {{ st_label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Custom Orders Table -->
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-100">
+          <tr>
+            <th class="py-3.5 px-6">Código</th>
+            <th class="py-3.5 px-6">Cliente</th>
+            <th class="py-3.5 px-6">Estilo de Torta</th>
+            <th class="py-3.5 px-6">Porciones</th>
+            <th class="py-3.5 px-6">Fecha Requerida</th>
+            <th class="py-3.5 px-6">Precio Final</th>
+            <th class="py-3.5 px-6">Estado</th>
+            <th class="py-3.5 px-6 text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-cocoa">
+          {% for co in custom_orders %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-4 px-6 font-bold text-heart">
+              <a href="{% url 'dashboard:custom_order_detail' pk=co.pk %}" class="hover:underline">
+                {{ co.order_number }}
+              </a>
+            </td>
+            <td class="py-4 px-6">
+              <span class="font-bold block">{{ co.customer_name }}</span>
+              <span class="text-slate-400 text-[11px]">{{ co.customer_phone }}</span>
+            </td>
+            <td class="py-4 px-6 font-semibold">
+              {{ co.cake_style.name }}
+            </td>
+            <td class="py-4 px-6">
+              <span class="badge-kraft text-[10px]">{{ co.portions }} Personas</span>
+            </td>
+            <td class="py-4 px-6 font-bold text-heart">
+              {{ co.desired_date }}
+            </td>
+            <td class="py-4 px-6 font-bold">
+              {% if co.final_price %}
+                {{ co.final_price|clp }}
+              {% else %}
+                <span class="text-slate-400 italic">Por cotizar</span>
+              {% endif %}
+            </td>
+            <td class="py-4 px-6">
+              <span class="badge-gold text-[10px]">{{ co.get_status_display }}</span>
+            </td>
+            <td class="py-4 px-6 text-right">
+              <a href="{% url 'dashboard:custom_order_detail' pk=co.pk %}" class="btn-primary text-[11px] py-1 px-3 shadow-none">
+                Cotizar / Responder
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-12 text-center text-slate-400 text-xs">
+              No hay solicitudes de tortas personalizadas con este filtro.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

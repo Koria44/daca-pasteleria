@@ -1,0 +1,89 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}Configuración General de la Tienda{% endblock %}
+
+{% block dashboard_content %}
+<div class="max-w-3xl space-y-6">
+
+  <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+    <div class="border-b border-slate-100 pb-3">
+      <h3 class="font-serif text-xl font-bold text-cocoa">Datos del Negocio & Parámetros Operativos</h3>
+      <p class="text-xs text-slate-400">Estos valores se reflejan en el footer, barra superior, WhatsApp y en el cálculo del checkout.</p>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Nombre de la Pastelería</label>
+          <input type="text" name="store_name" value="{{ settings_obj.store_name }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50 font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Eslogan</label>
+          <input type="text" name="slogan" value="{{ settings_obj.slogan }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-cocoa mb-1">Dirección del Local</label>
+          <input type="text" name="address" value="{{ settings_obj.address }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Teléfono WhatsApp (sin signos, ej: 56912345678)</label>
+          <input type="text" name="whatsapp_phone" value="{{ settings_obj.whatsapp_phone }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50 font-bold text-heart">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Usuario de Instagram</label>
+          <input type="text" name="instagram" value="{{ settings_obj.instagram }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Correo de Contacto</label>
+          <input type="email" name="email" value="{{ settings_obj.email }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Horarios de Atención</label>
+          <input type="text" name="opening_hours" value="{{ settings_obj.opening_hours }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-cocoa mb-1">Aviso Especial en Barra Superior</label>
+          <input type="text" name="special_notice" value="{{ settings_obj.special_notice }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50 font-medium">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Costo de Despacho Base (CLP)</label>
+          <input type="number" name="shipping_cost" value="{{ settings_obj.shipping_cost }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50 font-bold">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Anticipación Mínima (Horas)</label>
+          <input type="number" name="anticipation_hours" value="{{ settings_obj.anticipation_hours }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Monto Mínimo de Pedido (CLP)</label>
+          <input type="number" name="min_order_amount" value="{{ settings_obj.min_order_amount }}" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Fechas Bloqueadas (separadas por coma)</label>
+          <input type="text" name="blocked_dates" value="{{ settings_obj.blocked_dates }}" placeholder="2026-12-25, 2027-01-01" class="w-full rounded-2xl border-slate-200 text-xs py-2 px-3 bg-slate-50">
+        </div>
+      </div>
+
+      <div class="pt-4 flex justify-end">
+        <button type="submit" class="btn-primary text-xs py-2.5 px-8 shadow-sm">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

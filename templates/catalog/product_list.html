@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Catálogo de Pastelería Artesanal · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Header Banner Section -->
+  <div class="relative rounded-3xl bg-gradient-to-r from-cream-200 via-blush/40 to-cream-100 p-8 sm:p-12 mb-10 border border-kraft/20 overflow-hidden shadow-soft">
+    <div class="relative z-10 max-w-2xl">
+      <span class="badge-heart mb-3">Carta & Pedidos</span>
+      <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa leading-tight">
+        Dulzura Artesanal & Momentos Inolvidables
+      </h1>
+      <p class="text-sm sm:text-base text-cocoa/80 mt-3 leading-relaxed">
+        Elaboramos todas nuestras recetas a diario en nuestro taller de Rojas Magallanes 055, La Florida. Elige tus favoritos para retiro o despacho a domicilio.
+      </p>
+    </div>
+    <!-- Decorative floating heart -->
+    <div class="absolute -right-6 -bottom-6 w-48 h-48 rounded-full bg-blush/60 blur-2xl pointer-events-none"></div>
+  </div>
+
+  <!-- Filter Controls Bar -->
+  <div 
+    x-data="{ currentCat: '{{ current_category }}', currentSort: '{{ current_ordering }}', currentFilter: '{{ current_filter }}' }"
+    class="space-y-6 mb-10"
+  >
+    <!-- Categories Horizontal Scroll -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <a 
+        href="{% url 'catalog:product_list' %}"
+        hx-get="{% url 'catalog:htmx_filter' %}"
+        hx-target="#product-grid-container"
+        hx-push-url="true"
+        @click="currentCat = ''"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all border"
+        :class="currentCat === '' ? 'bg-cocoa text-cream border-cocoa shadow-sm' : 'bg-white text-cocoa border-kraft/20 hover:border-kraft'"
+      >
+        Todas las Categorías
+      </a>
+
+      {% for cat in categories %}
+      <a 
+        href="{% url 'catalog:category_detail' slug=cat.slug %}"
+        hx-get="{% url 'catalog:htmx_filter' %}?categoria={{ cat.slug }}"
+        hx-target="#product-grid-container"
+        hx-push-url="true"
+        @click="currentCat = '{{ cat.slug }}'"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all border flex items-center gap-1.5"
+        :class="currentCat === '{{ cat.slug }}' ? 'bg-cocoa text-cream border-cocoa shadow-sm' : 'bg-white text-cocoa border-kraft/20 hover:border-kraft'"
+      >
+        <span>{{ cat.name }}</span>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- Second Row: Type Filter, Sort and Search -->
+    <div class="bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-kraft/20 shadow-soft flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Quick Chips -->
+      <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
+        <a 
+          hx-get="{% url 'catalog:htmx_filter' %}?filtro="
+          hx-target="#product-grid-container"
+          hx-push-url="true"
+          @click="currentFilter = ''"
+          class="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors"
+          :class="currentFilter === '' ? 'bg-kraft/20 text-cocoa font-bold' : 'text-cocoa/70 hover:bg-kraft/10'"
+        >
+          Todos
+        </a>
+        <a 
+          hx-get="{% url 'catalog:htmx_filter' %}?filtro=tortas"
+          hx-target="#product-grid-container"
+          hx-push-url="true"
+          @click="currentFilter = 'tortas'"
+          class="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors"
+          :class="currentFilter === 'tortas' ? 'bg-heart/15 text-heart font-bold' : 'text-cocoa/70 hover:bg-kraft/10'"
+        >
+          🎂 Solo Tortas
+        </a>
+        <a 
+          hx-get="{% url 'catalog:htmx_filter' %}?filtro=destacados"
+          hx-target="#product-grid-container"
+          hx-push-url="true"
+          @click="currentFilter = 'destacados'"
+          class="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors"
+          :class="currentFilter === 'destacados' ? 'bg-gold/20 text-gold-dark font-bold' : 'text-cocoa/70 hover:bg-kraft/10'"
+        >
+          ⭐ Destacados
+        </a>
+        <a 
+          hx-get="{% url 'catalog:htmx_filter' %}?filtro=nuevos"
+          hx-target="#product-grid-container"
+          hx-push-url="true"
+          @click="currentFilter = 'nuevos'"
+          class="px-3 py-1 rounded-full text-xs font-medium cursor-pointer transition-colors"
+          :class="currentFilter === 'nuevos' ? 'bg-kraft/20 text-cocoa font-bold' : 'text-cocoa/70 hover:bg-kraft/10'"
+        >
+          ✨ Nuevos
+        </a>
+      </div>
+
+      <!-- Live Search & Sort -->
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <!-- Live Search Input -->
+        <div class="relative flex-1 md:w-64">
+          <input 
+            type="text" 
+            name="q"
+            value="{{ search_query }}"
+            placeholder="Buscar..."
+            hx-get="{% url 'catalog:htmx_filter' %}"
+            hx-trigger="keyup changed delay:350ms"
+            hx-target="#product-grid-container"
+            hx-include="[name='categoria'], [name='orden']"
+            class="w-full pl-8 pr-3 py-1.5 rounded-full border-kraft/30 text-xs focus:ring-heart focus:border-heart text-cocoa bg-cream-50"
+          >
+          <span class="absolute left-2.5 top-2 text-cocoa/40">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </span>
+        </div>
+
+        <!-- Sort Select -->
+        <select 
+          name="orden"
+          hx-get="{% url 'catalog:htmx_filter' %}"
+          hx-target="#product-grid-container"
+          hx-include="[name='q'], [name='categoria']"
+          class="rounded-full border-kraft/30 text-xs py-1.5 pl-3 pr-8 text-cocoa bg-cream-50 focus:ring-heart focus:border-heart font-medium"
+        >
+          <option value="featured" {% if current_ordering == 'featured' %}selected{% endif %}>Destacados</option>
+          <option value="precio_asc" {% if current_ordering == 'precio_asc' %}selected{% endif %}>Precio: Menor a Mayor</option>
+          <option value="precio_desc" {% if current_ordering == 'precio_desc' %}selected{% endif %}>Precio: Mayor a Menor</option>
+          <option value="nombre" {% if current_ordering == 'nombre' %}selected{% endif %}>Nombre A-Z</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Product Grid Container -->
+  {% include 'catalog/partials/_product_grid.html' %}
+
+</div>
+{% endblock %}

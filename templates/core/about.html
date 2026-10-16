@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Nosotros · Historia & Amor Artesanal · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
+
+  <!-- Hero Header -->
+  <div class="text-center max-w-3xl mx-auto space-y-4">
+    <span class="badge-heart">Nuestra Pasión</span>
+    <h1 class="font-serif text-4xl sm:text-6xl font-bold text-cocoa">
+      El Arte de la Pastelería Hecha con Amor
+    </h1>
+    <p class="text-base sm:text-lg text-cocoa/80 leading-relaxed font-serif italic">
+      "Creemos que una torta no es solo un postre, es el testigo dulce de los momentos más felices de la vida."
+    </p>
+  </div>
+
+  <!-- Story & Philosophy -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <div class="space-y-4 text-sm sm:text-base text-cocoa/80 leading-relaxed">
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-cocoa">Nacidos en La Florida</h2>
+      <p>
+        Daca Pastelería nació en la comuna de La Florida, Santiago, del sueño de transformar ingredientes nobles en momentos mágicos. Lo que comenzó como un pequeño taller familiar se convirtió en un rincón boutique en <strong>Rojas Magallanes 055</strong>, donde cada mañana el aroma a bizcochuelo recién horneado y vainilla perfuma el vecindario.
+      </p>
+      <p>
+        Nuestra identidad combina la calidez rústica del cartón kraft y el mimbre con la sofisticación de la pastelería contemporánea. El corazón rojo de nuestro logo no es casualidad: simboliza el cuidado minucioso con el que batimos cada crema, decoramos cada borde y escribimos cada dedicatoria.
+      </p>
+    </div>
+
+    <div class="relative rounded-3xl overflow-hidden shadow-warm aspect-square border-4 border-white bg-cream-200">
+      <img src="https://images.unsplash.com/photo-1556911073-38141963c9e0?w=800&auto=format&fit=crop&q=80" alt="Taller Daca Pastelería" class="w-full h-full object-cover">
+    </div>
+  </div>
+
+  <!-- Three Pillars of Quality -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pt-8 border-t border-kraft/20">
+    <div class="daca-card text-center">
+      <div class="w-12 h-12 rounded-full bg-blush text-heart flex items-center justify-center mx-auto mb-3 text-xl">
+        ❤
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Materias Primas Nobles</h3>
+      <p class="text-xs text-cocoa/75 leading-relaxed">
+        Usamos mantequilla 100%, huevos de campo seleccionados, cacao belga y frutas naturales de estación. Cero sucedáneos artificiales.
+      </p>
+    </div>
+
+    <div class="daca-card text-center">
+      <div class="w-12 h-12 rounded-full bg-blush text-heart flex items-center justify-center mx-auto mb-3 text-xl">
+        ⭐
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Horneado Diario</h3>
+      <p class="text-xs text-cocoa/75 leading-relaxed">
+        No almacenamos tortas congeladas por semanas. Horneamos diariamente para asegurar frescura, esponjosidad y humedad inigualable.
+      </p>
+    </div>
+
+    <div class="daca-card text-center">
+      <div class="w-12 h-12 rounded-full bg-blush text-heart flex items-center justify-center mx-auto mb-3 text-xl">
+        🎁
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Presentación Boutique</h3>
+      <p class="text-xs text-cocoa/75 leading-relaxed">
+        Cajas de cartón kraft rígido, cintas finas y tarjetas con dedicatoria caligrafiada a mano para que tu regalo sea inolvidable.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

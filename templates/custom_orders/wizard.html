@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Diseña tu Torta a tu Medida · Asistente Daca Pastelería{% endblock %}
+
+{% block content %}
+<div 
+  x-data="{
+    step: 1,
+    totalSteps: 7,
+    selectedStyleId: '{% if selected_style %}{{ selected_style.id }}{% elif cake_styles.first %}{{ cake_styles.first.id }}{% endif %}',
+    selectedStyleName: '{% if selected_style %}{{ selected_style.name }}{% elif cake_styles.first %}{{ cake_styles.first.name }}{% endif %}',
+    selectedBasePrice: {% if selected_style %}{{ selected_style.base_price }}{% elif cake_styles.first %}{{ cake_styles.first.base_price }}{% else %}25000{% endif %},
+    portions: 12,
+    spongeFlavor: 'Red Velvet',
+    fillingFlavor: 'Frosting de queso crema y manjar',
+    frostingType: 'Buttercream suave',
+    colorPalette: 'Blush rosado con toques dorados',
+    messageOnCake: 'Feliz Cumpleaños',
+    topper: 'Topper acrílico dorado',
+    allergies: '',
+    desiredDate: '',
+    deliveryPreference: 'pickup',
+    estimatedBudget: 35000,
+    customerName: '{{ request.user.get_full_name|default:'' }}',
+    customerEmail: '{{ request.user.email|default:'' }}',
+    customerPhone: '{{ request.user.profile.phone|default:'' }}',
+    customerNotes: '',
+    preview1: null,
+    preview2: null,
+    preview3: null,
+    handleFile(event, num) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this['preview' + num] = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    get estimatedTotal() {
+      // Base calculation
+      let multiplier = this.portions / 8;
+      return Math.round(this.selectedBasePrice * multiplier);
+    }
+  }"
+  class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+>
+  <!-- Wizard Header -->
+  <div class="text-center max-w-2xl mx-auto mb-10">
+    <span class="badge-heart mb-2">Asistente Paso a Paso</span>
+    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      Hazla a tu Medida
+    </h1>
+    <p class="text-sm text-cocoa/75 mt-2">
+      Cuéntanos tu idea. Diseñaremos la torta soñada para tu celebración con acabados de alta pastelería.
+    </p>
+
+    <!-- Progress Stepper -->
+    <div class="mt-8 relative">
+      <div class="h-1.5 bg-kraft/20 rounded-full overflow-hidden max-w-xl mx-auto">
+        <div 
+          class="h-full bg-heart transition-all duration-500 rounded-full"
+          :style="'width: ' + ((step / totalSteps) * 100) + '%'"
+        ></div>
+      </div>
+      <div class="flex justify-between max-w-xl mx-auto mt-3 text-[11px] font-bold text-cocoa/60 uppercase tracking-wider">
+        <span :class="step >= 1 ? 'text-heart' : ''">1. Estilo</span>
+        <span :class="step >= 2 ? 'text-heart' : ''">2. Tamaño</span>
+        <span :class="step >= 3 ? 'text-heart' : ''">3. Sabores</span>
+        <span :class="step >= 4 ? 'text-heart' : ''">4. Diseño</span>
+        <span :class="step >= 5 ? 'text-heart' : ''">5. Fotos</span>
+        <span :class="step >= 6 ? 'text-heart' : ''">6. Fecha</span>
+        <span :class="step >= 7 ? 'text-heart' : ''">7. Resumen</span>
+      </div>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'custom_orders:wizard' %}" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Hidden form bindings -->
+    <input type="hidden" name="cake_style" :value="selectedStyleId">
+    <input type="hidden" name="portions" :value="portions">
+    <input type="hidden" name="sponge_flavor" :value="spongeFlavor">
+    <input type="hidden" name="filling_flavor" :value="fillingFlavor">
+    <input type="hidden" name="frosting_type" :value="frostingType">
+    <input type="hidden" name="color_palette" :value="colorPalette">
+    <input type="hidden" name="message_on_cake" :value="messageOnCake">
+    <input type="hidden" name="topper" :value="topper">
+    <input type="hidden" name="allergies_restrictions" :value="allergies">
+    <input type="hidden" name="desired_date" :value="desiredDate">
+    <input type="hidden" name="delivery_preference" :value="deliveryPreference">
+    <input type="hidden" name="estimated_budget" :value="estimatedBudget">
+    <input type="hidden" name="customer_name" :value="customerName">
+    <input type="hidden" name="customer_email" :value="customerEmail">
+    <input type="hidden" name="customer_phone" :value="customerPhone">
+    <input type="hidden" name="customer_notes" :value="customerNotes">
+
+    <!-- STEP 1: Elige el estilo -->
+    <div x-show="step === 1" class="space-y-6">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 1: Elige el Estilo Base</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Selecciona la línea estética que mejor se adapta a tu evento.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for style in cake_styles %}
+        <div 
+          @click="selectedStyleId = '{{ style.id }}'; selectedStyleName = '{{ style.name }}'; selectedBasePrice = {{ style.base_price }}"
+          class="cursor-pointer bg-white rounded-3xl p-4 shadow-soft border transition-all duration-300 relative group flex flex-col justify-between"
+          :class="selectedStyleId === '{{ style.id }}' ? 'border-heart ring-2 ring-heart shadow-warm scale-[1.02]' : 'border-kraft/20 hover:border-kraft'"
+        >
+          <div class="aspect-square rounded-2xl overflow-hidden bg-cream-100 mb-3 relative">
+            {% if style.image %}
+            <img src="{{ style.image.url }}" alt="{{ style.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center bg-blush text-heart">❤</div>
+            {% endif %}
+            <span class="absolute top-2 right-2 badge-heart text-[10px]">
+              Desde {{ style.base_price|clp }}
+            </span>
+          </div>
+
+          <div>
+            <h3 class="font-serif text-lg font-bold text-cocoa leading-tight">{{ style.name }}</h3>
+            <p class="text-xs text-cocoa/70 mt-1 leading-relaxed">{{ style.description }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="flex justify-end pt-6">
+        <button type="button" @click="step = 2" class="btn-primary text-sm py-3 px-8">
+          Siguiente: Tamaño y Porciones →
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Tamaño y Porciones -->
+    <div x-show="step === 2" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 2: ¿Para Cuántas Personas?</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Calculamos el diámetro y altura ideal para que alcance perfecto.</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <template x-for="p in [4, 8, 12, 16, 20, 25, 30, 40, 50]" :key="p">
+          <button 
+            type="button"
+            @click="portions = p"
+            class="p-5 rounded-3xl border text-center transition-all flex flex-col items-center justify-center gap-2"
+            :class="portions === p ? 'border-heart bg-blush/40 ring-2 ring-heart shadow-sm' : 'border-kraft/20 bg-white hover:border-kraft'"
+          >
+            <span class="font-serif text-3xl font-bold text-cocoa" x-text="p"></span>
+            <span class="text-xs font-semibold text-cocoa/70 uppercase">Personas</span>
+            <span class="text-[10px] text-heart font-bold" x-text="'~' + (p <= 4 ? '12 cm' : p <= 12 ? '18 cm' : p <= 20 ? '22 cm' : '2 o más pisos')"></span>
+          </button>
+        </template>
+      </div>
+
+      <!-- Live Portion Preview Box -->
+      <div class="bg-white rounded-3xl p-6 border border-kraft/20 shadow-soft flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-kraft-darker block">Selección Actual</span>
+          <h3 class="font-serif text-xl font-bold text-cocoa" x-text="selectedStyleName + ' para ' + portions + ' personas'"></h3>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-cocoa/60 block">Presupuesto estimado:</span>
+          <span class="font-serif text-2xl font-bold text-heart" x-text="'$' + estimatedTotal.toLocaleString('es-CL')"></span>
+        </div>
+      </div>
+
+      <div class="flex justify-between pt-6">
+        <button type="button" @click="step = 1" class="btn-outline text-sm py-3 px-6">← Volver</button>
+        <button type="button" @click="step = 3" class="btn-primary text-sm py-3 px-8">Siguiente: Sabores →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Sabores -->
+    <div x-show="step === 3" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 3: Elige la Combinación de Sabores</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Nuestros bizcochos húmedos y rellenos gourmet.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Sponge -->
+        <div class="bg-white rounded-3xl p-6 border border-kraft/20 shadow-soft space-y-4">
+          <span class="badge-kraft text-xs font-bold">1. Bizcocho</span>
+          <div class="space-y-2">
+            <template x-for="item in ['Red Velvet Tradicional', 'Chocolate Belga Húmedo', 'Vainilla Bourbon', 'Zanahoria y Nuez', 'Limón y Amapolas']">
+              <label 
+                class="flex items-center gap-3 p-3 rounded-2xl border text-xs cursor-pointer transition-all"
+                :class="spongeFlavor === item ? 'border-heart bg-blush/30 font-bold' : 'border-kraft/15 hover:border-kraft'"
+              >
+                <input type="radio" name="_sponge" :value="item" x-model="spongeFlavor" class="text-heart focus:ring-heart">
+                <span x-text="item"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <!-- Filling -->
+        <div class="bg-white rounded-3xl p-6 border border-kraft/20 shadow-soft space-y-4">
+          <span class="badge-kraft text-xs font-bold">2. Relleno</span>
+          <div class="space-y-2">
+            <template x-for="item in ['Frosting de Queso Crema', 'Manjar de Campo y Nuez', 'Ganache Chocolate 60%', 'Frambuesas y Crema', 'Crema Diplomática y Frutillas', 'Crema Oreo Cookies']">
+              <label 
+                class="flex items-center gap-3 p-3 rounded-2xl border text-xs cursor-pointer transition-all"
+                :class="fillingFlavor === item ? 'border-heart bg-blush/30 font-bold' : 'border-kraft/15 hover:border-kraft'"
+              >
+                <input type="radio" name="_filling" :value="item" x-model="fillingFlavor" class="text-heart focus:ring-heart">
+                <span x-text="item"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <!-- Frosting -->
+        <div class="bg-white rounded-3xl p-6 border border-kraft/20 shadow-soft space-y-4">
+          <span class="badge-kraft text-xs font-bold">3. Cobertura</span>
+          <div class="space-y-2">
+            <template x-for="item in ['Buttercream Suave de Vainilla', 'Frosting Queso Crema', 'Merengue Italiano Dorado', 'Semi-desnudo (Naked Cake)', 'Chantilly Artesanal']">
+              <label 
+                class="flex items-center gap-3 p-3 rounded-2xl border text-xs cursor-pointer transition-all"
+                :class="frostingType === item ? 'border-heart bg-blush/30 font-bold' : 'border-kraft/15 hover:border-kraft'"
+              >
+                <input type="radio" name="_frosting" :value="item" x-model="frostingType" class="text-heart focus:ring-heart">
+                <span x-text="item"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-between pt-6">
+        <button type="button" @click="step = 2" class="btn-outline text-sm py-3 px-6">← Volver</button>
+        <button type="button" @click="step = 4" class="btn-primary text-sm py-3 px-8">Siguiente: Personalización →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Personalización -->
+    <div x-show="step === 4" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 4: Colores, Dedicatoria y Decoración</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Los detalles visuales que harán única tu torta.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-kraft/20 shadow-soft space-y-6">
+        
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Paleta de Colores / Temática</label>
+          <input 
+            type="text" 
+            x-model="colorPalette"
+            placeholder="Ej: Rosado blush, toques dorados pan de oro y blanco marfil" 
+            class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50"
+          >
+          <!-- Quick Palette Suggestions -->
+          <div class="flex flex-wrap gap-2 mt-2">
+            <button type="button" @click="colorPalette = 'Rosado blush, toques dorados y blanco'" class="px-2.5 py-1 rounded-full text-xs bg-blush text-cocoa border border-kraft/20">Blush & Gold</button>
+            <button type="button" @click="colorPalette = 'Blanco minimalista con corazón rojo Daca'" class="px-2.5 py-1 rounded-full text-xs bg-cream-100 text-cocoa border border-kraft/20">Blanco & Corazón Rojo</button>
+            <button type="button" @click="colorPalette = 'Celeste pastel y toques crema'" class="px-2.5 py-1 rounded-full text-xs bg-blue-50 text-cocoa border border-kraft/20">Pastel Blue</button>
+            <button type="button" @click="colorPalette = 'Tonos tierra, kraft y flores secas'" class="px-2.5 py-1 rounded-full text-xs bg-kraft/15 text-cocoa border border-kraft/20">Boho Kraft</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Texto o Dedicatoria en la Torta</label>
+          <input 
+            type="text" 
+            x-model="messageOnCake"
+            placeholder="Ej: Feliz Cumpleaños Vale! / Love / Happy 30th" 
+            class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Topper o Decoración Especial</label>
+          <input 
+            type="text" 
+            x-model="topper"
+            placeholder="Ej: Topper acrílico 'Feliz Cumpleaños', flores frescas tratadas..." 
+            class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Alergias o Restricciones Alimentarias</label>
+          <input 
+            type="text" 
+            x-model="allergies"
+            placeholder="Ej: Sin nueces, alérgico al maní..." 
+            class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50"
+          >
+        </div>
+
+      </div>
+
+      <div class="flex justify-between pt-6">
+        <button type="button" @click="step = 3" class="btn-outline text-sm py-3 px-6">← Volver</button>
+        <button type="button" @click="step = 5" class="btn-primary text-sm py-3 px-8">Siguiente: Fotos de Referencia →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Fotos de Referencia -->
+    <div x-show="step === 5" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 5: Sube hasta 3 Fotos de Inspiración</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Fotos de Pinterest, Instagram o capturas de pantalla de lo que imaginas.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        
+        <!-- Photo 1 -->
+        <div class="bg-white rounded-3xl p-6 border-2 border-dashed border-kraft/30 text-center flex flex-col items-center justify-center min-h-[220px]">
+          <template x-if="preview1">
+            <img :src="preview1" class="w-full h-36 object-cover rounded-xl mb-3">
+          </template>
+          <template x-if="!preview1">
+            <div class="w-12 h-12 rounded-full bg-cream-100 flex items-center justify-center text-kraft-darker mb-2">📷</div>
+          </template>
+          <label class="btn-outline text-xs py-1.5 px-4 cursor-pointer mt-2">
+            <span>Foto 1 Principal</span>
+            <input type="file" name="reference_image_1" accept="image/*" @change="handleFile($event, 1)" class="hidden">
+          </label>
+        </div>
+
+        <!-- Photo 2 -->
+        <div class="bg-white rounded-3xl p-6 border-2 border-dashed border-kraft/30 text-center flex flex-col items-center justify-center min-h-[220px]">
+          <template x-if="preview2">
+            <img :src="preview2" class="w-full h-36 object-cover rounded-xl mb-3">
+          </template>
+          <template x-if="!preview2">
+            <div class="w-12 h-12 rounded-full bg-cream-100 flex items-center justify-center text-kraft-darker mb-2">📷</div>
+          </template>
+          <label class="btn-outline text-xs py-1.5 px-4 cursor-pointer mt-2">
+            <span>Foto 2 Detalle</span>
+            <input type="file" name="reference_image_2" accept="image/*" @change="handleFile($event, 2)" class="hidden">
+          </label>
+        </div>
+
+        <!-- Photo 3 -->
+        <div class="bg-white rounded-3xl p-6 border-2 border-dashed border-kraft/30 text-center flex flex-col items-center justify-center min-h-[220px]">
+          <template x-if="preview3">
+            <img :src="preview3" class="w-full h-36 object-cover rounded-xl mb-3">
+          </template>
+          <template x-if="!preview3">
+            <div class="w-12 h-12 rounded-full bg-cream-100 flex items-center justify-center text-kraft-darker mb-2">📷</div>
+          </template>
+          <label class="btn-outline text-xs py-1.5 px-4 cursor-pointer mt-2">
+            <span>Foto 3 Opcional</span>
+            <input type="file" name="reference_image_3" accept="image/*" @change="handleFile($event, 3)" class="hidden">
+          </label>
+        </div>
+
+      </div>
+
+      <div class="flex justify-between pt-6">
+        <button type="button" @click="step = 4" class="btn-outline text-sm py-3 px-6">← Volver</button>
+        <button type="button" @click="step = 6" class="btn-primary text-sm py-3 px-8">Siguiente: Fecha y Contacto →</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: Fecha y Contacto -->
+    <div x-show="step === 6" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 6: Fecha del Evento y Contacto</h2>
+        <p class="text-xs text-cocoa/70 mt-1">¿Para cuándo necesitas tu torta y cómo te contactamos?</p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-kraft/20 shadow-soft space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Fecha Deseada *</label>
+            <input 
+              type="date" 
+              x-model="desiredDate" 
+              required 
+              class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50"
+            >
+            <p class="text-[10px] text-cocoa/60 mt-1">Recomendamos al menos 48 a 72 hrs de anticipación.</p>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Preferencia de Entrega</label>
+            <select x-model="deliveryPreference" class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50">
+              <option value="pickup">Retiro en local (Rojas Magallanes 055, La Florida)</option>
+              <option value="delivery">Despacho a domicilio</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Nombre Completo *</label>
+            <input type="text" x-model="customerName" required placeholder="Tu nombre" class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Teléfono / WhatsApp *</label>
+            <input type="tel" x-model="customerPhone" required placeholder="+56 9 8765 4321" class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Correo Electrónico *</label>
+            <input type="email" x-model="customerEmail" required placeholder="tu@correo.cl" class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Presupuesto Estimado (Opcional CLP)</label>
+            <input type="number" x-model="estimatedBudget" placeholder="35000" class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 bg-cream-50">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Detalles o Comentarios Adicionales</label>
+            <textarea x-model="customerNotes" rows="2" placeholder="Cualquier idea, número de velas o consulta que nos quieras hacer..." class="w-full rounded-2xl border-kraft/30 text-sm p-3 bg-cream-50"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-between pt-6">
+        <button type="button" @click="step = 5" class="btn-outline text-sm py-3 px-6">← Volver</button>
+        <button type="button" @click="step = 7" class="btn-primary text-sm py-3 px-8">Siguiente: Revisión y Envío →</button>
+      </div>
+    </div>
+
+    <!-- STEP 7: Resumen y Envío -->
+    <div x-show="step === 7" class="space-y-6" style="display: none;">
+      <div class="border-b border-kraft/20 pb-4">
+        <h2 class="font-serif text-2xl font-bold text-cocoa">Paso 7: Resumen de tu Solicitud</h2>
+        <p class="text-xs text-cocoa/70 mt-1">Revisa que todo esté correcto antes de enviar tu cotización a la pastelería.</p>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-kraft/20 shadow-warm space-y-6">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs sm:text-sm">
+          <div>
+            <strong class="text-kraft-darker uppercase block mb-1">Estilo y Tamaño</strong>
+            <p class="text-base font-bold text-cocoa" x-text="selectedStyleName"></p>
+            <p class="text-cocoa/80" x-text="portions + ' Personas'"></p>
+          </div>
+
+          <div>
+            <strong class="text-kraft-darker uppercase block mb-1">Sabores</strong>
+            <p class="text-cocoa"><strong>Bizcocho:</strong> <span x-text="spongeFlavor"></span></p>
+            <p class="text-cocoa"><strong>Relleno:</strong> <span x-text="fillingFlavor"></span></p>
+            <p class="text-cocoa"><strong>Cobertura:</strong> <span x-text="frostingType"></span></p>
+          </div>
+
+          <div>
+            <strong class="text-kraft-darker uppercase block mb-1">Personalización</strong>
+            <p class="text-cocoa"><strong>Colores:</strong> <span x-text="colorPalette || 'A criterio de pastelería'"></span></p>
+            <p class="text-cocoa"><strong>Dedicatoria:</strong> <span x-text="messageOnCake || 'Sin dedicatoria'"></span></p>
+            <p class="text-cocoa"><strong>Topper:</strong> <span x-text="topper || 'Sin topper'"></span></p>
+          </div>
+
+          <div>
+            <strong class="text-kraft-darker uppercase block mb-1">Entrega y Contacto</strong>
+            <p class="text-cocoa"><strong>Fecha:</strong> <span class="font-bold text-heart" x-text="desiredDate || 'Por coordinar'"></span></p>
+            <p class="text-cocoa"><strong>Entrega:</strong> <span x-text="deliveryPreference === 'pickup' ? 'Retiro en local' : 'Despacho'"></span></p>
+            <p class="text-cocoa"><strong>Cliente:</strong> <span x-text="customerName"></span> (<span x-text="customerPhone"></span>)</p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-cream-100 border border-kraft/25 flex items-center justify-between">
+          <div>
+            <span class="text-xs uppercase font-bold text-kraft-darker block">Cotización Referencial Inicial</span>
+            <span class="text-[11px] text-cocoa/60">El precio final será confirmado por nuestras maestras pasteleras.</span>
+          </div>
+          <span class="font-serif text-3xl font-extrabold text-heart" x-text="'~$' + estimatedTotal.toLocaleString('es-CL')"></span>
+        </div>
+
+        <div class="pt-2">
+          <button 
+            type="submit" 
+            class="btn-primary w-full py-4 text-base font-bold shadow-heart flex items-center justify-center gap-2"
+          >
+            <span>Enviar Solicitud de Torta a la Pastelería</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+
+      </div>
+
+      <div class="flex justify-start pt-6">
+        <button type="button" @click="step = 6" class="btn-outline text-sm py-3 px-6">← Volver</button>
+      </div>
+    </div>
+
+  </form>
+</div>
+{% endblock %}

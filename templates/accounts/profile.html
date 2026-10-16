@@ -1,0 +1,304 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Mi Perfil · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div 
+  x-data="{ activeSection: 'orders', showAddAddress: false }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+>
+  
+  <!-- Profile Header -->
+  <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6 mb-8">
+    <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+      <div class="w-20 h-20 rounded-full bg-cream-200 border-2 border-kraft/40 flex items-center justify-center text-heart text-3xl font-serif font-bold shadow-inner">
+        {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+      </div>
+      <div>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-cocoa">
+          ¡Hola, {{ request.user.get_full_name|default:request.user.username }}!
+        </h1>
+        <p class="text-xs text-cocoa/70 mt-1">
+          Cliente Daca · {{ request.user.email }}
+        </p>
+        {% if profile.phone %}
+        <span class="inline-block mt-2 text-xs font-semibold px-3 py-1 rounded-full bg-kraft/15 text-kraft-darker">
+          {{ profile.phone }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      {% if request.user.is_staff %}
+      <a href="{% url 'dashboard:home' %}" class="btn-primary text-xs py-2 px-4 shadow-heart">
+        Panel Admin
+      </a>
+      {% endif %}
+      <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-outline text-xs py-2 px-4">
+          Cerrar Sesión
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="flex border-b border-kraft/20 gap-4 mb-8 overflow-x-auto pb-1 text-xs sm:text-sm font-bold uppercase tracking-wider">
+    <button 
+      @click="activeSection = 'orders'"
+      class="pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0"
+      :class="activeSection === 'orders' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+    >
+      <span>Mis Pedidos</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] bg-kraft/20 text-kraft-darker">{{ recent_orders|length }}</span>
+    </button>
+
+    <button 
+      @click="activeSection = 'custom_orders'"
+      class="pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0"
+      :class="activeSection === 'custom_orders' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+    >
+      <span>Tortas Personalizadas</span>
+      <span class="px-2 py-0.5 rounded-full text-[10px] bg-heart/15 text-heart">{{ custom_orders|length }}</span>
+    </button>
+
+    <button 
+      @click="activeSection = 'addresses'"
+      class="pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0"
+      :class="activeSection === 'addresses' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+    >
+      <span>Mis Direcciones</span>
+    </button>
+
+    <button 
+      @click="activeSection = 'settings'"
+      class="pb-3 border-b-2 transition-colors flex items-center gap-2 flex-shrink-0"
+      :class="activeSection === 'settings' ? 'border-heart text-heart' : 'border-transparent text-cocoa/60 hover:text-cocoa'"
+    >
+      <span>Datos Personales</span>
+    </button>
+  </div>
+
+  <!-- Section 1: Recent Orders -->
+  <div x-show="activeSection === 'orders'" class="space-y-4">
+    {% if recent_orders %}
+      <div class="grid grid-cols-1 gap-4">
+        {% for order in recent_orders %}
+        <div class="bg-white rounded-3xl p-6 shadow-soft border border-kraft/20 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-base text-cocoa">{{ order.order_number }}</span>
+              <span class="badge-heart">{{ order.get_status_display }}</span>
+            </div>
+            <p class="text-xs text-cocoa/70">
+              Fecha entrega: <strong>{{ order.delivery_date }} ({{ order.delivery_time_slot }})</strong> · {{ order.get_delivery_type_display }}
+            </p>
+            <p class="text-xs text-kraft-darker">
+              Total: <strong class="text-heart font-bold">{{ order.total|clp }}</strong> ({{ order.get_payment_status_display }})
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <a href="{% url 'orders:confirmation' order_number=order.order_number %}" class="btn-outline text-xs py-2 px-4">
+              Ver Detalle y Comprobante
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-3xl p-12 text-center border border-kraft/20 shadow-soft max-w-md mx-auto">
+        <p class="text-sm text-cocoa/70 mb-4">Aún no tienes pedidos registrados.</p>
+        <a href="{% url 'catalog:product_list' %}" class="btn-primary text-xs py-2 px-6">
+          Ver Carta Dulce
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Section 2: Custom Cake Orders -->
+  <div x-show="activeSection === 'custom_orders'" class="space-y-4" style="display: none;">
+    {% if custom_orders %}
+      <div class="grid grid-cols-1 gap-4">
+        {% for custom_order in custom_orders %}
+        <div class="bg-white rounded-3xl p-6 shadow-soft border border-kraft/20 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-kraft/15 pb-3">
+            <div>
+              <span class="font-bold text-base text-cocoa">{{ custom_order.order_number }}</span>
+              <span class="text-xs text-kraft-darker block">{{ custom_order.cake_style.name }} ({{ custom_order.portions }} Personas)</span>
+            </div>
+            <div>
+              <span class="badge-gold">{{ custom_order.get_status_display }}</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-cocoa/80">
+            <div>
+              <strong>Fecha deseada:</strong>
+              <p>{{ custom_order.desired_date }}</p>
+            </div>
+            <div>
+              <strong>Sabores elegidos:</strong>
+              <p>{{ custom_order.sponge_flavor }} / {{ custom_order.filling_flavor }}</p>
+            </div>
+            <div>
+              <strong>Precio Cotizado:</strong>
+              <p class="text-heart font-bold text-sm">
+                {% if custom_order.final_price %}
+                  {{ custom_order.final_price|clp }}
+                {% else %}
+                  En revisión por pastelería
+                {% endif %}
+              </p>
+            </div>
+          </div>
+
+          {% if custom_order.bakery_response %}
+          <div class="p-3.5 rounded-2xl bg-cream-100 border border-kraft/20 text-xs">
+            <strong class="text-heart block mb-1">Respuesta de Daca Pastelería:</strong>
+            <p class="text-cocoa">{{ custom_order.bakery_response }}</p>
+          </div>
+          {% endif %}
+
+          <div class="flex items-center justify-between pt-2">
+            {% if custom_order.status == 'quoted' %}
+            <form method="post" action="{% url 'custom_orders:approve_quote' order_number=custom_order.order_number %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-primary text-xs py-2 px-5">
+                Aprobar Cotización
+              </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'custom_orders:confirmation' order_number=custom_order.order_number %}" class="btn-outline text-xs py-2 px-4 ml-auto">
+              Ver Solicitud
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="bg-white rounded-3xl p-12 text-center border border-kraft/20 shadow-soft max-w-md mx-auto">
+        <p class="text-sm text-cocoa/70 mb-4">No tienes cotizaciones de tortas personalizadas.</p>
+        <a href="{% url 'custom_orders:wizard' %}" class="btn-primary text-xs py-2 px-6">
+          Diseñar una Torta
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Section 3: Saved Addresses -->
+  <div x-show="activeSection === 'addresses'" class="space-y-6" style="display: none;">
+    <div class="flex justify-between items-center">
+      <h3 class="font-serif text-xl font-bold text-cocoa">Direcciones para Despacho</h3>
+      <button @click="showAddAddress = !showAddAddress" class="btn-outline text-xs py-2 px-4">
+        + Nueva Dirección
+      </button>
+    </div>
+
+    <!-- Add Address Form -->
+    <div x-show="showAddAddress" x-transition class="bg-white rounded-3xl p-6 shadow-soft border border-kraft/25" style="display: none;">
+      <h4 class="font-bold text-sm text-cocoa mb-4">Agregar Nueva Dirección</h4>
+      <form method="post" action="{% url 'accounts:address_create' %}" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-cocoa mb-1">Nombre (ej: Casa, Oficina)</label>
+            <input type="text" name="title" required value="Casa" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-cocoa mb-1">Nombre de quien recibe</label>
+            <input type="text" name="recipient_name" required value="{{ request.user.get_full_name }}" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-cocoa mb-1">Calle y Número</label>
+            <input type="text" name="street" required placeholder="Av. Walker Martínez 1200" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-cocoa mb-1">Depto / Casa / Referencia</label>
+            <input type="text" name="details" placeholder="Depto 402" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-cocoa mb-1">Comuna</label>
+            <input type="text" name="commune" required value="La Florida" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" @click="showAddAddress = false" class="btn-outline text-xs py-2 px-4">Cancelar</button>
+          <button type="submit" class="btn-primary text-xs py-2 px-6">Guardar Dirección</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Saved Addresses Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {% for addr in addresses %}
+      <div class="bg-white rounded-3xl p-6 shadow-soft border border-kraft/20 flex flex-col justify-between">
+        <div class="space-y-1 text-xs">
+          <div class="flex justify-between items-center mb-2">
+            <strong class="text-sm font-bold text-cocoa">{{ addr.title }}</strong>
+            {% if addr.is_default %}<span class="badge-gold text-[10px]">Principal</span>{% endif %}
+          </div>
+          <p class="text-cocoa/80 font-medium">{{ addr.street }} {{ addr.details }}</p>
+          <p class="text-cocoa/60">{{ addr.commune }}, Santiago</p>
+          <p class="text-kraft-darker mt-1">Recibe: {{ addr.recipient_name }}</p>
+        </div>
+        <div class="pt-4 mt-3 border-t border-kraft/15 flex justify-end">
+          <form method="post" action="{% url 'accounts:address_delete' pk=addr.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="text-heart text-xs font-semibold hover:underline">Eliminar</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-span-2 text-center py-8 text-xs text-cocoa/60">
+        No tienes direcciones guardadas.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Section 4: Personal Settings -->
+  <div x-show="activeSection === 'settings'" class="max-w-2xl bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20" style="display: none;">
+    <h3 class="font-serif text-xl font-bold text-cocoa mb-6 border-b border-kraft/15 pb-3">Editar Mis Datos</h3>
+    <form method="post" action="{% url 'accounts:profile' %}" class="space-y-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Nombre</label>
+          <input type="text" name="first_name" value="{{ request.user.first_name }}" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Apellido</label>
+          <input type="text" name="last_name" value="{{ request.user.last_name }}" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Correo Electrónico</label>
+          <input type="email" name="email" value="{{ request.user.email }}" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Teléfono / WhatsApp</label>
+          <input type="tel" name="phone" value="{{ profile.phone }}" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">RUT</label>
+          <input type="text" name="rut" value="{{ profile.rut }}" placeholder="12.345.678-9" class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-cocoa mb-1">Alergias o Restricciones</label>
+          <input type="text" name="dietary_preferences" value="{{ profile.dietary_preferences }}" placeholder="Sin nueces, bajo en azúcar..." class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 bg-cream-50">
+        </div>
+      </div>
+      <div class="pt-4 flex justify-end">
+        <button type="submit" class="btn-primary text-xs py-2.5 px-6">
+          Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,451 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Daca Pastelería · Pastelería Artesanal en La Florida, Santiago{% endblock %}
+
+{% block content %}
+
+<!-- 1. Hero / Main Slider Section -->
+<section class="relative bg-cream-100 overflow-hidden border-b border-kraft/20">
+  <div class="swiper hero-swiper w-full">
+    <div class="swiper-wrapper">
+      {% for banner in banners %}
+      <div class="swiper-slide relative min-h-[520px] md:min-h-[620px] flex items-center">
+        <!-- Background Overlay / Image -->
+        <div class="absolute inset-0 z-0">
+          {% if banner.image_desktop %}
+          <img 
+            src="{{ banner.image_desktop.url }}" 
+            alt="{{ banner.title }}" 
+            class="w-full h-full object-cover opacity-90 filter brightness-[0.96]"
+          >
+          <div class="absolute inset-0 bg-gradient-to-r from-cream via-cream/85 to-transparent"></div>
+          {% else %}
+          <div class="w-full h-full bg-gradient-to-r from-cream-200 via-blush/30 to-cream"></div>
+          {% endif %}
+        </div>
+
+        <!-- Banner Content -->
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
+          <div class="max-w-xl space-y-6">
+            {% if banner.badge %}
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 shadow-sm border border-kraft/30 text-xs font-bold text-heart">
+              <span class="animate-pulse">❤</span>
+              <span>{{ banner.badge }}</span>
+            </div>
+            {% endif %}
+
+            <h1 class="font-serif text-4xl sm:text-6xl font-bold text-cocoa leading-[1.1] tracking-tight">
+              {{ banner.title }}
+            </h1>
+
+            <p class="text-base sm:text-lg text-cocoa/85 leading-relaxed font-normal">
+              {{ banner.subtitle }}
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 pt-2">
+              {% if banner.button_text %}
+              <a href="{{ banner.button_url }}" class="btn-primary text-sm sm:text-base py-3.5 px-8 shadow-heart">
+                {{ banner.button_text }}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </a>
+              {% endif %}
+
+              {% if banner.secondary_button_text %}
+              <a href="{{ banner.secondary_button_url }}" class="btn-outline text-sm sm:text-base py-3 px-7 bg-white/80 hover:bg-kraft hover:text-white border-kraft">
+                {{ banner.secondary_button_text }}
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Swiper Pagination -->
+    <div class="swiper-pagination !bottom-6"></div>
+  </div>
+</section>
+
+<!-- 2. Categories Grid Section -->
+<section class="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="text-center max-w-2xl mx-auto mb-12 gsap-reveal">
+    <span class="badge-kraft mb-2">Pastelería & Cafetería</span>
+    <h2 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      Explora Nuestras Creaciones
+    </h2>
+    <p class="text-sm sm:text-base text-cocoa/75 mt-3">
+      Recetas horneadas con dedicación artesanal, masas esponjosas y los mejores ingredientes.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+    {% for cat in categories %}
+    <a 
+      href="{{ cat.get_absolute_url }}" 
+      class="group relative rounded-3xl overflow-hidden bg-white shadow-soft border border-kraft/15 hover:shadow-warm transition-all duration-300 transform hover:-translate-y-1 block"
+    >
+      <div class="aspect-[4/3] w-full overflow-hidden bg-cream-100 relative">
+        {% if cat.image %}
+        <img 
+          src="{{ cat.image.url }}" 
+          alt="{{ cat.name }}"
+          class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          loading="lazy"
+        >
+        {% endif %}
+        <div class="absolute inset-0 bg-gradient-to-t from-cocoa/80 via-cocoa/20 to-transparent"></div>
+        <div class="absolute bottom-3 left-3 right-3 text-white">
+          <h3 class="font-serif text-lg sm:text-xl font-bold leading-tight group-hover:text-gold transition-colors">
+            {{ cat.name }}
+          </h3>
+          <span class="text-[11px] text-cream/80 flex items-center gap-1 mt-0.5">
+            <span>Ver delicias</span>
+            <svg class="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- 3. Featured Products Section -->
+<section class="py-16 bg-cream-100/60 border-y border-kraft/15">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4 gsap-reveal">
+      <div>
+        <span class="badge-heart mb-2">Favoritos de La Florida</span>
+        <h2 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+          Nuestros Más Pedidos
+        </h2>
+        <p class="text-sm sm:text-base text-cocoa/75 mt-2">
+          Las recetas que conquistan cumpleaños, aniversarios y momentos dulces de todos los días.
+        </p>
+      </div>
+      <a href="{% url 'catalog:product_list' %}" class="btn-outline self-start md:self-auto text-xs py-2 px-6">
+        Ver catálogo completo
+        <svg class="w-4 h-4 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+
+    <!-- Product Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for product in featured_products %}
+        {% include 'catalog/partials/_product_card.html' with product=product %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- 4. Section: Hazla a tu Medida (Custom Cakes Callout) -->
+<section class="py-20 relative overflow-hidden bg-gradient-to-br from-cream-200 via-blush/30 to-cream border-b border-kraft/20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      
+      <div class="lg:col-span-7 space-y-6 gsap-reveal">
+        <span class="badge-heart">Tortas Personalizadas</span>
+        <h2 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold text-cocoa leading-[1.15]">
+          Hazla a tu Medida: Diseñamos la Torta de tus Sueños
+        </h2>
+        <p class="text-base text-cocoa/80 leading-relaxed max-w-xl">
+          ¿Tienes una idea en mente? En Daca personalizamos cada detalle: desde bento cakes con corazones y mensajes divertidos, hasta tortas de pisos para matrimonios, cumpleaños adultos e infantiles.
+        </p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          <div class="flex items-center gap-2.5 text-sm text-cocoa font-medium">
+            <span class="text-heart">✔</span>
+            <span>Elige bizcocho, rellenos y cobertura</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-sm text-cocoa font-medium">
+            <span class="text-heart">✔</span>
+            <span>Paleta de colores y dedicatoria personalizada</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-sm text-cocoa font-medium">
+            <span class="text-heart">✔</span>
+            <span>Sube hasta 3 fotos de referencia</span>
+          </div>
+          <div class="flex items-center gap-2.5 text-sm text-cocoa font-medium">
+            <span class="text-heart">✔</span>
+            <span>Cotización directa y rápida</span>
+          </div>
+        </div>
+
+        <div class="pt-4 flex flex-wrap gap-4">
+          <a href="{% url 'custom_orders:wizard' %}" class="btn-primary text-base py-3.5 px-8 shadow-heart">
+            Diseñar mi torta paso a paso
+            <svg class="w-5 h-5 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <a href="https://wa.me/{{ WHATSAPP_PHONE }}" target="_blank" rel="noopener" class="btn-outline text-base py-3 px-6 bg-white/80">
+            Consultar por WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <!-- Interactive Mini Preview Card -->
+      <div class="lg:col-span-5 gsap-reveal">
+        <div class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-warm border border-kraft/25 text-center">
+          <div class="w-20 h-20 rounded-full bg-blush flex items-center justify-center text-heart mx-auto mb-4 animate-heart-float">
+            <svg class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </div>
+          <h3 class="font-serif text-2xl font-bold text-cocoa">Asistente Interactivo</h3>
+          <p class="text-xs text-cocoa/70 mt-2 mb-6">
+            Configura porciones, sabores, colores y adjunta fotos de inspiración en 7 sencillos pasos.
+          </p>
+          <div class="bg-cream-100 p-4 rounded-2xl text-left text-xs space-y-2 border border-kraft/20">
+            <div class="flex justify-between text-cocoa font-semibold">
+              <span>Bento Cake San Valentín</span>
+              <span class="text-heart">Desde $12.990</span>
+            </div>
+            <div class="flex justify-between text-cocoa font-semibold">
+              <span>Tortas Clásicas y Temáticas</span>
+              <span class="text-heart">Desde $24.990</span>
+            </div>
+          </div>
+          <a href="{% url 'custom_orders:wizard' %}" class="btn-kraft w-full mt-6 py-3 text-sm">
+            Comenzar ahora
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- 5. How to Order in 4 Steps -->
+<section class="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="text-center max-w-2xl mx-auto mb-16 gsap-reveal">
+    <span class="badge-gold mb-2">Fácil y Rápido</span>
+    <h2 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      ¿Cómo Pedir en Daca?
+    </h2>
+    <p class="text-sm sm:text-base text-cocoa/75 mt-3">
+      Tu experiencia dulce en sólo 4 pasos transparentes y seguros.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+    
+    <!-- Step 1 -->
+    <div class="daca-card text-center relative group hover:border-kraft transition-all">
+      <div class="w-14 h-14 rounded-2xl bg-cream-200 text-kraft-darker flex items-center justify-center font-serif text-2xl font-bold mx-auto mb-4 group-hover:bg-heart group-hover:text-white transition-colors">
+        1
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Elige tu Favorito</h3>
+      <p class="text-xs text-cocoa/70 leading-relaxed">
+        Explora la carta de tortas, mini postres o diseña una torta personalizada a tu estilo.
+      </p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="daca-card text-center relative group hover:border-kraft transition-all">
+      <div class="w-14 h-14 rounded-2xl bg-cream-200 text-kraft-darker flex items-center justify-center font-serif text-2xl font-bold mx-auto mb-4 group-hover:bg-heart group-hover:text-white transition-colors">
+        2
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Fecha y Dedicatoria</h3>
+      <p class="text-xs text-cocoa/70 leading-relaxed">
+        Selecciona fecha, horario de retiro en La Florida o despacho a tu comuna y escribe tu mensaje.
+      </p>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="daca-card text-center relative group hover:border-kraft transition-all">
+      <div class="w-14 h-14 rounded-2xl bg-cream-200 text-kraft-darker flex items-center justify-center font-serif text-2xl font-bold mx-auto mb-4 group-hover:bg-heart group-hover:text-white transition-colors">
+        3
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">Horneado con Amor</h3>
+      <p class="text-xs text-cocoa/70 leading-relaxed">
+        Preparamos tu pedido fresco el mismo día con ingredientes de primera calidad.
+      </p>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="daca-card text-center relative group hover:border-kraft transition-all">
+      <div class="w-14 h-14 rounded-2xl bg-cream-200 text-kraft-darker flex items-center justify-center font-serif text-2xl font-bold mx-auto mb-4 group-hover:bg-heart group-hover:text-white transition-colors">
+        4
+      </div>
+      <h3 class="font-serif text-xl font-bold text-cocoa mb-2">¡A Disfrutar!</h3>
+      <p class="text-xs text-cocoa/70 leading-relaxed">
+        Recibe en caja kraft de boutique con lazos y tarjeta, lista para sorprender.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- 6. Testimonials Carousel Section -->
+{% if testimonials %}
+<section class="py-16 bg-cream-100 border-y border-kraft/15">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-xl mx-auto mb-12 gsap-reveal">
+      <span class="badge-heart mb-2">Testimonios Reales</span>
+      <h2 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+        Lo que dicen de Daca
+      </h2>
+      <p class="text-sm text-cocoa/70 mt-2">La felicidad de nuestros clientes es nuestro mayor orgullo.</p>
+    </div>
+
+    <div class="swiper testimonials-swiper">
+      <div class="swiper-wrapper pb-10">
+        {% for t in testimonials %}
+        <div class="swiper-slide">
+          <div class="bg-white rounded-3xl p-8 border border-kraft/20 shadow-soft h-full flex flex-col justify-between">
+            <div>
+              <div class="flex text-gold mb-4 text-base">
+                {% for i in "12345"|make_list %}
+                  {% if forloop.counter <= t.rating %}★{% else %}☆{% endif %}
+                {% endfor %}
+              </div>
+              <p class="text-sm text-cocoa/85 italic leading-relaxed font-serif text-base">
+                "{{ t.quote }}"
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-kraft/10 flex items-center justify-between">
+              <div>
+                <strong class="font-bold text-sm text-cocoa block">{{ t.client_name }}</strong>
+                {% if t.occasion %}
+                <span class="text-xs text-kraft-darker">{{ t.occasion }}</span>
+                {% endif %}
+              </div>
+              <span class="text-heart text-lg">❤</span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 7. Instagram Showcase Grid -->
+<section class="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="text-center max-w-xl mx-auto mb-10 gsap-reveal">
+    <span class="badge-kraft mb-2">@dacapasteleria</span>
+    <h2 class="font-serif text-3xl sm:text-4xl font-bold text-cocoa">
+      Síguenos en Instagram
+    </h2>
+    <p class="text-xs sm:text-sm text-cocoa/70 mt-1">Comparte tus momentos con nosotros usando #DacaPasteleria</p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <a href="https://instagram.com/dacapasteleria" target="_blank" rel="noopener" class="group relative rounded-2xl overflow-hidden aspect-square bg-cream-200 border border-kraft/20 block">
+      <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" alt="Torta Daca Instagram" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-cocoa/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+        <span class="text-sm font-semibold">Ver en Instagram</span>
+      </div>
+    </a>
+    <a href="https://instagram.com/dacapasteleria" target="_blank" rel="noopener" class="group relative rounded-2xl overflow-hidden aspect-square bg-cream-200 border border-kraft/20 block">
+      <img src="https://images.unsplash.com/photo-1588195538326-c5b1e9f80a1b?w=600&auto=format&fit=crop&q=80" alt="Mini Cakes Daca" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-cocoa/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+        <span class="text-sm font-semibold">Ver en Instagram</span>
+      </div>
+    </a>
+    <a href="https://instagram.com/dacapasteleria" target="_blank" rel="noopener" class="group relative rounded-2xl overflow-hidden aspect-square bg-cream-200 border border-kraft/20 block">
+      <img src="https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=600&auto=format&fit=crop&q=80" alt="Cupcakes y Mini Postres" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-cocoa/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+        <span class="text-sm font-semibold">Ver en Instagram</span>
+      </div>
+    </a>
+    <a href="https://instagram.com/dacapasteleria" target="_blank" rel="noopener" class="group relative rounded-2xl overflow-hidden aspect-square bg-cream-200 border border-kraft/20 block">
+      <img src="https://images.unsplash.com/photo-1563729784474-d77dbb933a9e?w=600&auto=format&fit=crop&q=80" alt="Tartaletas y Dulzuras" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+      <div class="absolute inset-0 bg-cocoa/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+        <span class="text-sm font-semibold">Ver en Instagram</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- 8. Location & Map Section -->
+<section class="py-16 bg-cream-100/70 border-t border-kraft/20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      
+      <div class="lg:col-span-5 space-y-6">
+        <span class="badge-gold">En el Corazón de La Florida</span>
+        <h2 class="font-serif text-3xl sm:text-4xl font-bold text-cocoa">
+          Visítanos o Retira tu Pedido
+        </h2>
+        <div class="space-y-3 text-sm text-cocoa/80">
+          <p class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-heart flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span><strong>Dirección:</strong> {{ site_settings.address|default:"Rojas Magallanes 055, La Florida, Santiago, Chile" }}</span>
+          </p>
+          <p class="flex items-start gap-2.5">
+            <svg class="w-5 h-5 text-kraft-dark flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong>Horario:</strong> {{ site_settings.opening_hours|default:"Lunes a Domingo: 10:00 a 20:30 hrs" }}</span>
+          </p>
+        </div>
+
+        <div class="pt-2 flex flex-wrap gap-4">
+          <a href="https://wa.me/{{ WHATSAPP_PHONE }}" target="_blank" rel="noopener" class="btn-primary text-sm py-3 px-6">
+            Escribir por WhatsApp
+          </a>
+          <a href="https://maps.google.com/?q=Rojas+Magallanes+055,+La+Florida" target="_blank" rel="noopener" class="btn-outline text-sm py-3 px-6 bg-white/80">
+            Abrir en Google Maps
+          </a>
+        </div>
+      </div>
+
+      <!-- Google Maps Embed -->
+      <div class="lg:col-span-7 rounded-3xl overflow-hidden shadow-soft border border-kraft/20 h-80 sm:h-96">
+        <iframe 
+          title="Ubicación Daca Pastelería La Florida"
+          src="https://maps.google.com/maps?q=Rojas+Magallanes+055,+La+Florida,+Santiago,+Chile&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+          width="100%" 
+          height="100%" 
+          style="border:0;" 
+          allowfullscreen="" 
+          loading="lazy" 
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hero Swiper
+    new Swiper('.hero-swiper', {
+      loop: true,
+      autoplay: {
+        delay: 5500,
+        disableOnInteraction: false,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      effect: 'fade',
+      fadeEffect: {
+        crossFade: true
+      },
+    });
+
+    // Testimonials Swiper
+    new Swiper('.testimonials-swiper', {
+      slidesPerView: 1,
+      spaceBetween: 24,
+      loop: true,
+      autoplay: {
+        delay: 4500,
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      breakpoints: {
+        640: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 },
+      }
+    });
+  });
+</script>
+{% endblock %}

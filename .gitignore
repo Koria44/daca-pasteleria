@@ -1,0 +1,58 @@
+# ==========================================
+# .gitignore para Daca Pastelería (Django)
+# ==========================================
+
+# Variables de entorno y secretos (CRÍTICO: nunca subir a Git)
+.env
+.env.*
+!.env.example
+
+# Base de datos local SQLite (los datos de demo se generan con 'seed_demo')
+db.sqlite3
+*.sqlite3
+*.sqlite3-journal
+
+# Entornos virtuales Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archivos estáticos generados para producción (se crean con collectstatic)
+staticfiles/
+
+# Node y dependencias de Tailwind
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Configuraciones de editores e IDEs
+.vscode/
+.idea/
+.gemini/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de sistema operativo
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Fotos privadas subidas por clientes en pedidos personalizados (si existieran)
+media/custom_orders/uploads/
+media/uploads/

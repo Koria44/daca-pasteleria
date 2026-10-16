@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}Preguntas Frecuentes · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  
+  <div class="text-center max-w-xl mx-auto mb-12">
+    <span class="badge-heart mb-2">Ayuda y Respuestas</span>
+    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      Preguntas Frecuentes
+    </h1>
+    <p class="text-sm text-cocoa/75 mt-2">Todo lo que necesitas saber sobre pedidos, retiros, despachos y conservación.</p>
+  </div>
+
+  <div x-data="{ active: 1 }" class="space-y-4">
+    
+    <!-- FAQ 1 -->
+    <div class="bg-white rounded-3xl border border-kraft/20 overflow-hidden shadow-soft">
+      <button 
+        @click="active = (active === 1 ? null : 1)" 
+        class="w-full p-6 text-left font-serif text-lg font-bold text-cocoa flex justify-between items-center transition-colors hover:text-heart"
+      >
+        <span>¿Con cuánta anticipación debo pedir una torta?</span>
+        <span class="text-heart text-xl font-mono" x-text="active === 1 ? '−' : '+'"></span>
+      </button>
+      <div x-show="active === 1" x-transition class="px-6 pb-6 text-sm text-cocoa/80 leading-relaxed border-t border-kraft/10 pt-3">
+        Para tortas del catálogo tradicional recomendamos <strong>24 a 48 horas de anticipación</strong>. Si se trata de tortas personalizadas con modelados, flores o varios pisos, sugerimos realizar la cotización con <strong>3 a 5 días de antelación</strong> para asegurar disponibilidad de cupo en el taller.
+      </div>
+    </div>
+
+    <!-- FAQ 2 -->
+    <div class="bg-white rounded-3xl border border-kraft/20 overflow-hidden shadow-soft">
+      <button 
+        @click="active = (active === 2 ? null : 2)" 
+        class="w-full p-6 text-left font-serif text-lg font-bold text-cocoa flex justify-between items-center transition-colors hover:text-heart"
+      >
+        <span>¿Tienen despacho a domicilio y cuáles son las comunas?</span>
+        <span class="text-heart text-xl font-mono" x-text="active === 2 ? '−' : '+'"></span>
+      </button>
+      <div x-show="active === 2" x-transition class="px-6 pb-6 text-sm text-cocoa/80 leading-relaxed border-t border-kraft/10 pt-3" style="display: none;">
+        Sí, realizamos despacho refrigerado en La Florida y comunas aledañas del Gran Santiago (Macul, Peñalolén, Puente Alto, Ñuñoa, Providencia, San Miguel). El costo base de despacho se detalla en el checkout. También puedes optar por <strong>retiro gratuito</strong> en nuestro local de Rojas Magallanes 055.
+      </div>
+    </div>
+
+    <!-- FAQ 3 -->
+    <div class="bg-white rounded-3xl border border-kraft/20 overflow-hidden shadow-soft">
+      <button 
+        @click="active = (active === 3 ? null : 3)" 
+        class="w-full p-6 text-left font-serif text-lg font-bold text-cocoa flex justify-between items-center transition-colors hover:text-heart"
+      >
+        <span>¿Cómo debo conservar mi torta una vez recibida?</span>
+        <span class="text-heart text-xl font-mono" x-text="active === 3 ? '−' : '+'"></span>
+      </button>
+      <div x-show="active === 3" x-transition class="px-6 pb-6 text-sm text-cocoa/80 leading-relaxed border-t border-kraft/10 pt-3" style="display: none;">
+        Nuestras tortas no contienen preservantes artificiales. Deben mantenerse refrigeradas entre <strong>2°C y 5°C</strong> dentro de su caja kraft. Para disfrutar la máxima cremosidad del frosting o buttercream, te recomendamos retirar la torta del refrigerador unos <strong>20 a 30 minutos antes de servir</strong>.
+      </div>
+    </div>
+
+    <!-- FAQ 4 -->
+    <div class="bg-white rounded-3xl border border-kraft/20 overflow-hidden shadow-soft">
+      <button 
+        @click="active = (active === 4 ? null : 4)" 
+        class="w-full p-6 text-left font-serif text-lg font-bold text-cocoa flex justify-between items-center transition-colors hover:text-heart"
+      >
+        <span>¿Qué métodos de pago están disponibles?</span>
+        <span class="text-heart text-xl font-mono" x-text="active === 4 ? '−' : '+'"></span>
+      </button>
+      <div x-show="active === 4" x-transition class="px-6 pb-6 text-sm text-cocoa/80 leading-relaxed border-t border-kraft/10 pt-3" style="display: none;">
+        Aceptamos transferencia bancaria directa (puedes adjuntar tu comprobante en la web o enviarlo por WhatsApp), pago contra entrega o al retirar en local con tarjetas o efectivo.
+      </div>
+    </div>
+
+    <!-- FAQ 5 -->
+    <div class="bg-white rounded-3xl border border-kraft/20 overflow-hidden shadow-soft">
+      <button 
+        @click="active = (active === 5 ? null : 5)" 
+        class="w-full p-6 text-left font-serif text-lg font-bold text-cocoa flex justify-between items-center transition-colors hover:text-heart"
+      >
+        <span>¿Cómo funciona el pedido de tortas personalizadas (Bento Cakes / De pisos)?</span>
+        <span class="text-heart text-xl font-mono" x-text="active === 5 ? '−' : '+'"></span>
+      </button>
+      <div x-show="active === 5" x-transition class="px-6 pb-6 text-sm text-cocoa/80 leading-relaxed border-t border-kraft/10 pt-3" style="display: none;">
+        Ingresas a nuestra sección <a href="{% url 'custom_orders:wizard' %}" class="text-heart font-bold underline">Hazla a tu Medida</a>, seleccionas el estilo, porciones, sabores, dedicatoria y subes tus fotos de referencia. Te enviamos una cotización y confirmas con un anticipo para agendar la fecha.
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-12 text-center bg-cream-100 p-8 rounded-3xl border border-kraft/20 space-y-3">
+    <h3 class="font-serif text-xl font-bold text-cocoa">¿Aún tienes preguntas?</h3>
+    <p class="text-xs text-cocoa/70">Nuestro equipo está listo para ayudarte en lo que necesites.</p>
+    <a href="https://wa.me/{{ WHATSAPP_PHONE }}" target="_blank" rel="noopener" class="btn-primary text-xs py-2.5 px-6 inline-block">
+      Escribir a WhatsApp
+    </a>
+  </div>
+
+</div>
+{% endblock %}

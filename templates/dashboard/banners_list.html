@@ -1,0 +1,43 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}Banners & Anuncios de la Tienda{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <div class="flex items-center justify-between">
+    <span class="text-xs text-slate-500 font-semibold">{{ banners.count }} banners configurados</span>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for b in banners %}
+    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+      <div>
+        <div class="aspect-[21/9] rounded-2xl overflow-hidden bg-slate-100 mb-3 border border-slate-100">
+          {% if b.image_desktop %}
+          <img src="{{ b.image_desktop.url }}" alt="{{ b.title }}" class="w-full h-full object-cover">
+          {% else %}
+          <div class="w-full h-full flex items-center justify-center text-slate-300">Sin imagen</div>
+          {% endif %}
+        </div>
+
+        <div class="flex items-center gap-2 mb-1">
+          {% if b.badge %}<span class="badge-heart text-[10px]">{{ b.badge }}</span>{% endif %}
+          <span class="text-[11px] text-slate-400">Orden: {{ b.order }}</span>
+          {% if b.is_active %}<span class="text-emerald-600 text-[11px] font-bold">● Activo</span>{% endif %}
+        </div>
+
+        <h3 class="font-serif text-lg font-bold text-cocoa">{{ b.title }}</h3>
+        <p class="text-xs text-slate-600 mt-1">{{ b.subtitle }}</p>
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+        <span class="text-slate-500">Botón: <strong>{{ b.button_text }}</strong> ({{ b.button_url }})</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

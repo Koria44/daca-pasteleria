@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Mis Pedidos · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+  
+  <div class="flex items-center justify-between border-b border-kraft/20 pb-4">
+    <div>
+      <span class="badge-heart mb-1">Historial</span>
+      <h1 class="font-serif text-3xl font-bold text-cocoa">Mis Pedidos</h1>
+    </div>
+    <a href="{% url 'accounts:profile' %}" class="btn-outline text-xs py-2 px-4">
+      ← Ir a Mi Perfil
+    </a>
+  </div>
+
+  {% if orders %}
+  <div class="grid grid-cols-1 gap-4">
+    {% for order in orders %}
+    <div class="bg-white rounded-3xl p-6 shadow-soft border border-kraft/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-3">
+          <span class="font-bold text-base text-cocoa">{{ order.order_number }}</span>
+          <span class="badge-heart text-xs">{{ order.get_status_display }}</span>
+        </div>
+        <p class="text-xs text-cocoa/70">
+          Entrega programada: <strong>{{ order.delivery_date }} ({{ order.delivery_time_slot }})</strong> · {{ order.get_delivery_type_display }}
+        </p>
+        <p class="text-xs text-kraft-darker font-semibold">
+          Total: <strong class="text-heart font-bold">{{ order.total|clp }}</strong> ({{ order.get_payment_status_display }})
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        {% if order.payment_status != 'paid' and order.status != 'cancelled' %}
+        <a href="{% url 'orders:webpay_retry' order_number=order.order_number %}" class="btn-primary text-xs py-2 px-3.5 shadow-sm flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          <span>Pagar con Webpay</span>
+        </a>
+        {% elif order.payment_status == 'paid' %}
+        <a href="{% url 'orders:webpay_receipt' order_number=order.order_number %}" class="btn-outline text-xs py-2 px-3.5 border-kraft/30 hover:bg-kraft/10">
+          Ver Comprobante Webpay
+        </a>
+        {% endif %}
+        <a href="{% url 'orders:confirmation' order_number=order.order_number %}" class="btn-outline text-xs py-2 px-3.5 border-kraft/30 hover:bg-kraft/10">
+          Detalle del Pedido
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white rounded-3xl p-12 text-center border border-kraft/20 shadow-soft max-w-md mx-auto">
+    <p class="text-sm text-cocoa/70 mb-4">Aún no has realizado pedidos.</p>
+    <a href="{% url 'catalog:product_list' %}" class="btn-primary text-xs py-2.5 px-6">
+      Ver Catálogo de Tortas
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

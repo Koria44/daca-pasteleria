@@ -1,0 +1,169 @@
+{% load daca_tags %}
+
+<div id="cart-page-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+  
+  {% if cart.total_items > 0 %}
+  <!-- Items Table / Cards -->
+  <div class="lg:col-span-8 bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-6">
+    <div class="flex items-center justify-between border-b border-kraft/15 pb-4">
+      <h2 class="font-serif text-2xl font-bold text-cocoa">Tus Delicias Seleccionadas</h2>
+      <span class="text-xs font-semibold text-kraft-darker bg-kraft/15 px-3 py-1 rounded-full">
+        {{ cart.total_items }} {% if cart.total_items == 1 %}producto{% else %}productos{% endif %}
+      </span>
+    </div>
+
+    <div class="divide-y divide-kraft/15">
+      {% for item in cart %}
+      <div class="py-4 sm:py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        
+        <div class="flex items-center gap-4">
+          {% if item.image_url %}
+          <img src="{{ item.image_url }}" alt="{{ item.name }}" class="w-20 h-20 rounded-2xl object-cover border border-kraft/15 flex-shrink-0">
+          {% else %}
+          <div class="w-20 h-20 rounded-2xl bg-blush flex items-center justify-center text-heart flex-shrink-0">
+            ❤
+          </div>
+          {% endif %}
+
+          <div>
+            <h3 class="font-bold text-cocoa text-base">{{ item.name }}</h3>
+            {% if item.variant_name %}
+            <p class="text-xs text-kraft-darker font-semibold mt-0.5">{{ item.variant_name }}</p>
+            {% endif %}
+            {% if item.addons_text %}
+            <p class="text-xs text-heart font-semibold mt-0.5 flex items-center gap-1">
+              <span class="inline-block w-1.5 h-1.5 rounded-full bg-heart"></span>
+              + {{ item.addons_text }}
+            </p>
+            {% endif %}
+            {% if item.notes %}
+            <p class="text-xs text-cocoa/60 italic mt-1">Dedicatoria: "{{ item.notes }}"</p>
+            {% endif %}
+            <span class="text-xs text-cocoa/70 block sm:hidden font-bold mt-1">{{ item.price|clp }} c/u</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
+          <span class="text-sm font-semibold text-cocoa hidden sm:block">{{ item.price|clp }}</span>
+
+          <!-- Quantity Controls via HTMX -->
+          <div class="flex items-center border border-kraft/30 rounded-full bg-cream-50 overflow-hidden shadow-inner">
+            <form hx-post="{% url 'cart:update' %}" hx-target="#cart-page-content" hx-disabled-elt="find button" class="inline">
+              {% csrf_token %}
+              <input type="hidden" name="item_key" value="{{ item.key }}">
+              <input type="hidden" name="quantity" value="{{ item.quantity|add:'-1' }}">
+              <input type="hidden" name="is_full_page" value="1">
+              <button type="submit" class="w-8 h-8 flex items-center justify-center text-cocoa hover:bg-kraft/20 font-bold transition-colors disabled:opacity-50">−</button>
+            </form>
+
+            <span class="px-3 text-xs font-bold text-cocoa">{{ item.quantity }}</span>
+
+            <form hx-post="{% url 'cart:update' %}" hx-target="#cart-page-content" hx-disabled-elt="find button" class="inline">
+              {% csrf_token %}
+              <input type="hidden" name="item_key" value="{{ item.key }}">
+              <input type="hidden" name="quantity" value="{{ item.quantity|add:'1' }}">
+              <input type="hidden" name="is_full_page" value="1">
+              <button type="submit" class="w-8 h-8 flex items-center justify-center text-cocoa hover:bg-kraft/20 font-bold transition-colors disabled:opacity-50">+</button>
+            </form>
+          </div>
+
+          <!-- Total for item -->
+          <span class="font-bold text-base text-heart w-20 text-right">
+            {{ item.total_price|clp }}
+          </span>
+
+          <!-- Remove Item -->
+          <form hx-post="{% url 'cart:remove' %}" hx-target="#cart-page-content" hx-disabled-elt="find button" class="inline">
+            {% csrf_token %}
+            <input type="hidden" name="item_key" value="{{ item.key }}">
+            <input type="hidden" name="is_full_page" value="1">
+            <button type="submit" class="text-cocoa/30 hover:text-heart p-1.5 transition-colors disabled:opacity-50" title="Eliminar">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </form>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pt-4 flex items-center justify-between text-xs text-cocoa/70">
+      <a href="{% url 'catalog:product_list' %}" class="hover:text-heart flex items-center gap-1 font-semibold">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <span>Continuar explorando el catálogo</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Summary Sidebar -->
+  <div class="lg:col-span-4 bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-6">
+    <h3 class="font-serif text-xl font-bold text-cocoa border-b border-kraft/15 pb-4">
+      Resumen del Pedido
+    </h3>
+
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between text-cocoa/80">
+        <span>Subtotal</span>
+        <span class="font-semibold text-cocoa">{{ cart.subtotal|clp }}</span>
+      </div>
+      <div class="flex justify-between text-cocoa/80 text-xs">
+        <span>Despacho o Retiro</span>
+        <span>Se elige en Checkout</span>
+      </div>
+      <div class="pt-3 border-t border-kraft/15 flex justify-between text-base font-bold text-cocoa">
+        <span>Total Estimado</span>
+        <span class="text-xl text-heart">{{ cart.total_price|clp }}</span>
+      </div>
+    </div>
+
+    <div class="pt-2">
+      <a href="{% url 'orders:checkout' %}" class="btn-primary w-full text-center py-4 text-base font-bold shadow-heart block">
+        Continuar al Checkout
+        <svg class="w-5 h-5 ml-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+
+    <!-- Guarantees -->
+    <div class="pt-4 border-t border-kraft/15 space-y-2 text-xs text-cocoa/70">
+      <p class="flex items-center gap-2">
+        <span class="text-heart">❤</span>
+        <span>Pastelería 100% artesanal horneada en La Florida</span>
+      </p>
+      <p class="flex items-center gap-2">
+        <span class="text-heart">❤</span>
+        <span>Empaque boutique en cartón kraft y cinta</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- OOB swap for Header Badge -->
+  <div id="cart-count-badge-container" hx-swap-oob="innerHTML">
+    {% if cart.total_items > 0 %}
+    <span id="cart-count-badge" data-count="{{ cart.total_items }}" class="absolute -top-1 -right-1 bg-heart text-white text-[11px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse-subtle">
+      {{ cart.total_items }}
+    </span>
+    {% else %}
+    <span id="cart-count-badge" data-count="0"></span>
+    {% endif %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="col-span-12 bg-white rounded-3xl p-12 text-center border border-kraft/20 shadow-soft max-w-xl mx-auto">
+    <div class="w-20 h-20 rounded-full bg-blush flex items-center justify-center text-heart mx-auto mb-4 animate-heart-float">
+      <svg class="w-10 h-10 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </div>
+    <h2 class="font-serif text-3xl font-bold text-cocoa mb-2">Tu carrito está vacío</h2>
+    <p class="text-sm text-cocoa/70 mb-6 max-w-sm mx-auto">Aún no has agregado ninguna delicia artesanal. ¿Qué tal una Torta Red Velvet o un Bento Cake?</p>
+    <a href="{% url 'catalog:product_list' %}" class="btn-primary text-sm py-3 px-8">
+      Explorar Catálogo
+    </a>
+  </div>
+
+  <!-- OOB swap to clear badge -->
+  <div id="cart-count-badge-container" hx-swap-oob="innerHTML">
+    <span id="cart-count-badge" data-count="0"></span>
+  </div>
+  {% endif %}
+
+</div>

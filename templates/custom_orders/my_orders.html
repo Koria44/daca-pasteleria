@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Mis Tortas Personalizadas · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+  
+  <div class="flex items-center justify-between border-b border-kraft/20 pb-4">
+    <div>
+      <span class="badge-heart mb-1">Cotizaciones</span>
+      <h1 class="font-serif text-3xl font-bold text-cocoa">Mis Tortas Personalizadas</h1>
+    </div>
+    <div class="flex gap-2">
+      <a href="{% url 'accounts:profile' %}" class="btn-outline text-xs py-2 px-4">
+        ← Ir a Mi Perfil
+      </a>
+      <a href="{% url 'custom_orders:wizard' %}" class="btn-primary text-xs py-2 px-4 shadow-sm">
+        + Diseñar Otra Torta
+      </a>
+    </div>
+  </div>
+
+  {% if custom_orders %}
+  <div class="grid grid-cols-1 gap-6">
+    {% for co in custom_orders %}
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-kraft/15 pb-3">
+        <div>
+          <span class="font-bold text-base text-cocoa">{{ co.order_number }}</span>
+          <span class="text-xs text-kraft-darker block font-medium">{{ co.cake_style.name }} ({{ co.portions }} Personas)</span>
+        </div>
+        <span class="badge-gold text-xs">{{ co.get_status_display }}</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-cocoa/80">
+        <div>
+          <strong>Fecha Requerida:</strong>
+          <p class="font-bold text-heart text-sm mt-0.5">{{ co.desired_date }}</p>
+        </div>
+        <div>
+          <strong>Sabores Seleccionados:</strong>
+          <p class="mt-0.5">{{ co.sponge_flavor }} / {{ co.filling_flavor }}</p>
+        </div>
+        <div>
+          <strong>Precio Cotizado:</strong>
+          <p class="text-heart font-bold text-base mt-0.5">
+            {% if co.final_price %}
+              {{ co.final_price|clp }}
+            {% else %}
+              <span class="text-slate-400 italic font-normal text-xs">En revisión por nuestras maestras</span>
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      {% if co.bakery_response %}
+      <div class="p-4 rounded-2xl bg-cream-100 border border-kraft/20 text-xs">
+        <strong class="text-heart block mb-1">Respuesta de Daca Pastelería:</strong>
+        <p class="text-cocoa font-medium">{{ co.bakery_response }}</p>
+      </div>
+      {% endif %}
+
+      <div class="flex items-center justify-between pt-2">
+        {% if co.status == 'quoted' %}
+        <form method="post" action="{% url 'custom_orders:approve_quote' order_number=co.order_number %}">
+          {% csrf_token %}
+          <button type="submit" class="btn-primary text-xs py-2 px-6">
+            Aprobar Cotización y Coordinar Pago
+          </button>
+        </form>
+        {% endif %}
+
+        <a href="{% url 'custom_orders:confirmation' order_number=co.order_number %}" class="btn-outline text-xs py-2 px-4 ml-auto">
+          Ver Ficha y Enviar por WhatsApp
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white rounded-3xl p-12 text-center border border-kraft/20 shadow-soft max-w-md mx-auto">
+    <p class="text-sm text-cocoa/70 mb-4">No tienes cotizaciones de tortas personalizadas.</p>
+    <a href="{% url 'custom_orders:wizard' %}" class="btn-primary text-xs py-2.5 px-6">
+      Diseñar mi Primera Torta
+    </a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

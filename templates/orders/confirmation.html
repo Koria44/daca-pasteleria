@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}¡Pedido Confirmado {{ order.order_number }}! · Daca Pastelería{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+  <!-- Success Card -->
+  <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-warm border border-kraft/20 text-center relative overflow-hidden mb-8">
+    <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border-2 border-emerald-200">
+      <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    </div>
+
+    <span class="badge-heart mb-2">¡Recibido con Amor!</span>
+    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      ¡Muchas Gracias, {{ order.full_name }}!
+    </h1>
+    <p class="text-sm sm:text-base text-cocoa/75 mt-2 max-w-lg mx-auto">
+      Hemos recibido tu pedido con el código <strong class="text-heart font-bold">{{ order.order_number }}</strong>. Ya estamos coordinando los ingredientes frescos para tu entrega.
+    </p>
+
+    <!-- Quick WhatsApp Action CTA -->
+    <div class="pt-6 max-w-md mx-auto">
+      <a 
+        href="{{ whatsapp_url }}" 
+        target="_blank" 
+        rel="noopener"
+        class="inline-flex items-center justify-center gap-3 w-full py-4 px-6 rounded-full font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 transition-all transform active:scale-95 text-base"
+      >
+        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        <span>Enviar Resumen a WhatsApp</span>
+      </a>
+      <span class="text-[11px] text-cocoa/60 mt-1 block">Abre el chat con el resumen automático de tu pedido.</span>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+    
+    <!-- Order Details -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-4">
+      <h2 class="font-serif text-xl font-bold text-cocoa border-b border-kraft/15 pb-3">
+        Detalle del Pedido
+      </h2>
+
+      <div class="space-y-3 text-xs sm:text-sm">
+        <div class="flex justify-between">
+          <span class="text-cocoa/70">Código:</span>
+          <span class="font-bold text-cocoa">{{ order.order_number }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-cocoa/70">Estado:</span>
+          <span class="badge-heart">{{ order.get_status_display }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-cocoa/70">Entrega:</span>
+          <span class="font-semibold text-cocoa">{{ order.get_delivery_type_display }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-cocoa/70">Fecha programada:</span>
+          <span class="font-bold text-heart">{{ order.delivery_date }} ({{ order.delivery_time_slot }})</span>
+        </div>
+        {% if order.delivery_type == 'delivery' %}
+        <div class="flex justify-between">
+          <span class="text-cocoa/70">Dirección:</span>
+          <span class="font-medium text-cocoa text-right">{{ order.address_street }} {{ order.address_details }}, {{ order.commune }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Items List -->
+      <div class="pt-4 border-t border-kraft/15 divide-y divide-kraft/10">
+        {% for item in order.items.all %}
+        <div class="py-2.5 flex justify-between text-xs">
+          <div>
+            <span class="font-bold text-cocoa">{{ item.quantity }}x {{ item.product_name }}</span>
+            {% if item.variant_name %}<span class="text-kraft-darker block text-[11px]">{{ item.variant_name }}</span>{% endif %}
+            {% if item.addons_text %}<span class="text-heart block text-[11px] font-medium">+ {{ item.addons_text }}</span>{% endif %}
+            {% if item.notes %}<span class="text-cocoa/60 italic block text-[11px]">"{{ item.notes }}"</span>{% endif %}
+          </div>
+          <span class="font-bold text-cocoa">{{ item.subtotal|clp }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Financial Totals -->
+      <div class="pt-4 border-t border-kraft/15 space-y-1.5 text-xs sm:text-sm">
+        <div class="flex justify-between text-cocoa/70">
+          <span>Subtotal</span>
+          <span>{{ order.subtotal|clp }}</span>
+        </div>
+        {% if order.shipping_cost > 0 %}
+        <div class="flex justify-between text-cocoa/70">
+          <span>Despacho</span>
+          <span>{{ order.shipping_cost|clp }}</span>
+        </div>
+        {% endif %}
+        <div class="flex justify-between text-base font-extrabold text-cocoa pt-2 border-t border-kraft/15">
+          <span>Total</span>
+          <span class="text-heart text-xl">{{ order.total|clp }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Details & Receipt Upload -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-6">
+      <h2 class="font-serif text-xl font-bold text-cocoa border-b border-kraft/15 pb-3">
+        Datos de Transferencia
+      </h2>
+
+      <div class="bg-cream-100 p-4 rounded-2xl border border-kraft/25 text-xs space-y-2 text-cocoa">
+        <div class="flex justify-between"><span>Banco:</span><strong>Banco Estado / Banco de Chile</strong></div>
+        <div class="flex justify-between"><span>Tipo de Cuenta:</span><strong>Cuenta Corriente</strong></div>
+        <div class="flex justify-between"><span>Número:</span><strong>12345678</strong></div>
+        <div class="flex justify-between"><span>Razón Social:</span><strong>Daca Pastelería SpA</strong></div>
+        <div class="flex justify-between"><span>RUT:</span><strong>77.123.456-7</strong></div>
+        <div class="flex justify-between"><span>Correo:</span><strong>transferencias@dacapasteleria.cl</strong></div>
+        <div class="flex justify-between"><span>Asunto:</span><strong class="text-heart">{{ order.order_number }}</strong></div>
+      </div>
+
+      <!-- Upload Proof Form -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-cocoa">Subir Comprobante de Pago</h3>
+
+        {% if order.payment_proof %}
+        <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center gap-3 text-xs text-emerald-800">
+          <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          <div>
+            <strong>¡Comprobante adjuntado con éxito!</strong>
+            <span class="block text-[11px] text-emerald-700">Nuestro equipo confirmará el pago a la brevedad.</span>
+          </div>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'orders:upload_proof' order_number=order.order_number %}" enctype="multipart/form-data" class="space-y-3">
+          {% csrf_token %}
+          <input 
+            type="file" 
+            name="payment_proof" 
+            required
+            accept="image/*,.pdf"
+            class="w-full text-xs text-cocoa file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-kraft file:text-white hover:file:bg-kraft-dark cursor-pointer"
+          >
+          <button type="submit" class="btn-outline w-full text-xs py-2.5">
+            Adjuntar Comprobante
+          </button>
+        </form>
+      </div>
+
+      <div class="pt-2 text-center">
+        <a href="{% url 'core:home' %}" class="text-xs text-kraft-darker hover:text-heart font-semibold">
+          ← Volver a la página principal
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{
+  "name": "daca",
+  "version": "1.0.0",
+  "description": "Daca Pasteleria Artesanal - La Florida, Santiago",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  },
+  "keywords": [
+    "django",
+    "pasteleria",
+    "daca",
+    "tailwind"
+  ],
+  "author": "Daca Pasteleria",
+  "license": "ISC",
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
+  }
+}

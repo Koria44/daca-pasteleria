@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Error del Servidor (500) · Daca Pastelería{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-24 text-center space-y-6">
+  <div class="w-24 h-24 rounded-full bg-cream-200 flex items-center justify-center text-kraft-darker text-4xl mx-auto shadow-warm">
+    ⏳
+  </div>
+  <span class="badge-kraft">Error 500</span>
+  <h1 class="font-serif text-4xl sm:text-5xl font-bold text-cocoa">El horno está un poco caliente</h1>
+  <p class="text-sm text-cocoa/75">Ha ocurrido un problema inesperado en nuestro servidor. Por favor intenta recargar la página en unos segundos o escríbenos directamente.</p>
+  <div class="pt-2 flex flex-col sm:flex-row justify-center gap-3">
+    <a href="{% url 'core:home' %}" class="btn-primary text-sm py-3 px-6 shadow-heart">
+      Ir al Inicio
+    </a>
+    <a href="https://wa.me/{{ WHATSAPP_PHONE }}" class="btn-outline text-sm py-3 px-6">
+      Contactar por WhatsApp
+    </a>
+  </div>
+</div>
+{% endblock %}

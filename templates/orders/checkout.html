@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+{% load daca_tags %}
+
+{% block title %}Checkout · Finalizar Pedido · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div 
+  x-data="{
+    deliveryType: 'pickup',
+    baseShipping: {{ shipping_cost|default:3990 }},
+    subtotal: {{ cart.subtotal }},
+    discount: 0,
+    paymentMethod: 'transfer',
+    get shippingCost() {
+      return this.deliveryType === 'delivery' ? this.baseShipping : 0;
+    },
+    get grandTotal() {
+      return Math.max(0, this.subtotal + this.shippingCost - this.discount);
+    }
+  }"
+  class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+>
+  <div class="mb-8">
+    <span class="badge-heart mb-2">Paso 2 de 2</span>
+    <h1 class="font-serif text-3xl sm:text-5xl font-bold text-cocoa">
+      Finalizar Compra
+    </h1>
+    <p class="text-sm text-cocoa/70 mt-1">Completa tus datos para coordinar el retiro o despacho de tu pedido.</p>
+  </div>
+
+  <form method="post" action="{% url 'orders:checkout' %}">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Column: Checkout Form Steps -->
+      <div class="lg:col-span-8 space-y-8">
+        
+        <!-- Step 1: Customer Info -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-4">
+          <div class="flex items-center gap-3 border-b border-kraft/15 pb-4">
+            <span class="w-8 h-8 rounded-full bg-kraft/20 text-kraft-darker flex items-center justify-center font-bold text-sm">1</span>
+            <h2 class="font-serif text-2xl font-bold text-cocoa">Datos del Cliente</h2>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Nombre Completo *</label>
+              <input 
+                type="text" 
+                name="full_name" 
+                required
+                value="{% if request.user.is_authenticated %}{{ request.user.get_full_name|default:request.user.username }}{% endif %}"
+                placeholder="Ej: Camila Silva Morales"
+                class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Correo Electrónico *</label>
+              <input 
+                type="email" 
+                name="email" 
+                required
+                value="{% if request.user.is_authenticated %}{{ request.user.email }}{% endif %}"
+                placeholder="camila@ejemplo.cl"
+                class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Teléfono / WhatsApp *</label>
+              <input 
+                type="tel" 
+                name="phone" 
+                required
+                value="{% if user_profile %}{{ user_profile.phone }}{% endif %}"
+                placeholder="+56 9 8765 4321"
+                class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Delivery Method & Timing -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-6">
+          <div class="flex items-center gap-3 border-b border-kraft/15 pb-4">
+            <span class="w-8 h-8 rounded-full bg-kraft/20 text-kraft-darker flex items-center justify-center font-bold text-sm">2</span>
+            <h2 class="font-serif text-2xl font-bold text-cocoa">Entrega y Fecha</h2>
+          </div>
+
+          <!-- Pickup vs Delivery Options -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Pickup Option -->
+            <label 
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3"
+              :class="deliveryType === 'pickup' ? 'border-heart bg-blush/30 ring-1 ring-heart shadow-sm' : 'border-kraft/25 hover:border-kraft'"
+            >
+              <input type="radio" name="delivery_type" value="pickup" x-model="deliveryType" class="mt-1 text-heart focus:ring-heart">
+              <div>
+                <span class="font-bold text-sm text-cocoa block">Retiro en Local (Gratis)</span>
+                <span class="text-xs text-cocoa/70 block mt-1">Rojas Magallanes 055, La Florida.</span>
+                <span class="text-[11px] text-kraft-darker font-medium block mt-0.5">Listo en el horario seleccionado</span>
+              </div>
+            </label>
+
+            <!-- Delivery Option -->
+            <label 
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3"
+              :class="deliveryType === 'delivery' ? 'border-heart bg-blush/30 ring-1 ring-heart shadow-sm' : 'border-kraft/25 hover:border-kraft'"
+            >
+              <input type="radio" name="delivery_type" value="delivery" x-model="deliveryType" class="mt-1 text-heart focus:ring-heart">
+              <div>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-cocoa">Despacho a Domicilio</span>
+                  <span class="text-xs font-bold text-heart">+{{ shipping_cost|clp }}</span>
+                </div>
+                <span class="text-xs text-cocoa/70 block mt-1">La Florida y comunas cercanas de Santiago.</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Address Fields (Shown if Delivery) -->
+          <div x-show="deliveryType === 'delivery'" x-transition class="space-y-4 pt-4 border-t border-kraft/15" style="display: none;">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Calle y Número *</label>
+                <input 
+                  type="text" 
+                  name="address_street" 
+                  placeholder="Ej: Av. Walker Martínez 1500"
+                  class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+                >
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Depto / Casa / Referencia</label>
+                <input 
+                  type="text" 
+                  name="address_details" 
+                  placeholder="Ej: Depto 302, Torre B"
+                  class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+                >
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Comuna *</label>
+                <input 
+                  type="text" 
+                  name="commune" 
+                  value="La Florida"
+                  placeholder="La Florida"
+                  class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Date & Time Slot -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Fecha de Entrega / Retiro *</label>
+              <input 
+                type="date" 
+                name="delivery_date" 
+                required
+                class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+              >
+              <p class="text-[10px] text-cocoa/60 mt-1">Pedidos de tortas requieren mínimo 24 a 48 hrs de anticipación.</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Rango Horario Preferido *</label>
+              <select 
+                name="delivery_time_slot" 
+                class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+              >
+                <option value="11:00 a 14:00 hrs">Mañana: 11:00 a 14:00 hrs</option>
+                <option value="14:00 a 17:00 hrs" selected>Tarde 1: 14:00 a 17:00 hrs</option>
+                <option value="17:00 a 20:30 hrs">Tarde 2: 17:00 a 20:30 hrs</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Notas adicionales o Dedicatoria para la entrega</label>
+            <textarea 
+              name="customer_notes" 
+              rows="2" 
+              placeholder="Instrucciones para el conserje, detalles del timbre, o dedicatoria especial..."
+              class="w-full rounded-2xl border-kraft/30 text-sm p-3 focus:ring-heart focus:border-heart bg-cream-50"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment Method -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-soft border border-kraft/20 space-y-4">
+          <div class="flex items-center gap-3 border-b border-kraft/15 pb-4">
+            <span class="w-8 h-8 rounded-full bg-kraft/20 text-kraft-darker flex items-center justify-center font-bold text-sm">3</span>
+            <h2 class="font-serif text-2xl font-bold text-cocoa">Método de Pago</h2>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Transferencia -->
+            <label 
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3"
+              :class="paymentMethod === 'transfer' ? 'border-heart bg-blush/30 ring-1 ring-heart shadow-sm' : 'border-kraft/25 hover:border-kraft'"
+            >
+              <input type="radio" name="payment_method" value="transfer" x-model="paymentMethod" class="mt-1 text-heart focus:ring-heart">
+              <div>
+                <span class="font-bold text-sm text-cocoa block">Transferencia Bancaria Directa (Recomendado)</span>
+                <span class="text-xs text-cocoa/70 block mt-1">Recibirás los datos de cuenta bancaria y podrás subir tu comprobante de inmediato o enviarlo por WhatsApp.</span>
+              </div>
+            </label>
+
+            <!-- Pago al retirar -->
+            <label 
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3"
+              :class="paymentMethod === 'cash_on_delivery' ? 'border-heart bg-blush/30 ring-1 ring-heart shadow-sm' : 'border-kraft/25 hover:border-kraft'"
+            >
+              <input type="radio" name="payment_method" value="cash_on_delivery" x-model="paymentMethod" class="mt-1 text-heart focus:ring-heart">
+              <div>
+                <span class="font-bold text-sm text-cocoa block">Pago al Retirar en Local / Contra Entrega</span>
+                <span class="text-xs text-cocoa/70 block mt-1">Paga con tarjeta o efectivo directamente al momento de retirar en Rojas Magallanes 055.</span>
+              </div>
+            </label>
+
+            <!-- Webpay Plus (Preparado) -->
+            <label 
+              class="p-4 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 opacity-80"
+              :class="paymentMethod === 'webpay' ? 'border-heart bg-blush/30 ring-1 ring-heart shadow-sm' : 'border-kraft/25 hover:border-kraft'"
+            >
+              <input type="radio" name="payment_method" value="webpay" x-model="paymentMethod" class="mt-1 text-heart focus:ring-heart">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-sm text-cocoa">Webpay Plus (Débito / Crédito)</span>
+                  <span class="badge-gold text-[10px]">Capa de Pago</span>
+                </div>
+                <span class="text-xs text-cocoa/70 block mt-1">Estructura desacoplada lista para transacciones con Transbank / Webpay Plus.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Order Summary Sidebar -->
+      <div class="lg:col-span-4 bg-white rounded-3xl p-6 sm:p-8 shadow-warm border border-kraft/20 space-y-6 sticky top-28">
+        <h3 class="font-serif text-2xl font-bold text-cocoa border-b border-kraft/15 pb-4">
+          Tu Pedido
+        </h3>
+
+        <!-- Items preview list -->
+        <div class="max-h-60 overflow-y-auto divide-y divide-kraft/10 space-y-2 pr-1">
+          {% for item in cart %}
+          <div class="pt-2 first:pt-0 flex items-center justify-between text-xs">
+            <div class="flex-1 min-w-0 pr-2">
+              <span class="font-bold text-cocoa block truncate">{{ item.quantity }}x {{ item.name }}</span>
+              {% if item.variant_name %}<span class="text-kraft-darker text-[11px] block">{{ item.variant_name }}</span>{% endif %}
+              {% if item.addons_text %}<span class="text-heart text-[10px] block font-medium">+ {{ item.addons_text }}</span>{% endif %}
+              {% if item.notes %}<span class="text-cocoa/60 text-[10px] block italic truncate">"{{ item.notes }}"</span>{% endif %}
+            </div>
+            <span class="font-bold text-cocoa">{{ item.total_price|clp }}</span>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Coupon Input -->
+        <div class="pt-4 border-t border-kraft/15">
+          <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Cupón de Descuento</label>
+          <div class="flex gap-2">
+            <input 
+              type="text" 
+              name="coupon_code" 
+              placeholder="Ej: DACA10" 
+              class="w-full rounded-2xl border-kraft/30 text-xs py-2 px-3 uppercase bg-cream-50"
+            >
+          </div>
+        </div>
+
+        <!-- Totals calculation -->
+        <div class="space-y-2.5 text-sm pt-4 border-t border-kraft/15">
+          <div class="flex justify-between text-cocoa/80">
+            <span>Subtotal</span>
+            <span class="font-semibold text-cocoa">{{ cart.subtotal|clp }}</span>
+          </div>
+          <div class="flex justify-between text-cocoa/80">
+            <span>Despacho</span>
+            <span class="font-semibold text-cocoa" x-text="deliveryType === 'delivery' ? '{{ shipping_cost|clp }}' : 'Gratis (Retiro)'">
+              Gratis (Retiro)
+            </span>
+          </div>
+          <div class="flex justify-between text-base font-extrabold text-cocoa pt-3 border-t border-kraft/20">
+            <span>Total a Pagar</span>
+            <span class="text-2xl text-heart" x-text="'$' + grandTotal.toLocaleString('es-CL')">
+              {{ cart.total_price|clp }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Submit Checkout Button -->
+        <div class="pt-2">
+          <button 
+            type="submit" 
+            class="btn-primary w-full py-4 text-base font-bold shadow-heart flex items-center justify-center gap-2"
+          >
+            <span>Confirmar y Enviar Pedido</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+
+        <p class="text-[11px] text-cocoa/60 text-center leading-tight">
+          Al confirmar tu pedido, recibirás el resumen por correo y podrás enviar los detalles directamente a nuestro WhatsApp oficial.
+        </p>
+
+      </div>
+
+    </div>
+  </form>
+</div>
+{% endblock %}

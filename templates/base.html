@@ -1,0 +1,172 @@
+{% load static daca_tags %}
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Daca Pastelería · Pastelería Artesanal en La Florida{% endblock %}</title>
+  
+  <!-- SEO & Open Graph -->
+  <meta name="description" content="{% block meta_description %}Daca Pastelería Artesanal en La Florida, Santiago. Tortas personalizadas, bento cakes, mini postres y cafetería elaborados con amor y dedicación en Rojas Magallanes 055.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Daca Pastelería Artesanal{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Momentos dulces y recetas artesanales en La Florida, Santiago.{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CL">
+  
+  <!-- Favicon Heart Motif -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D7263D'><path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/></svg>">
+
+  <!-- Google Fonts: Playfair Display, Cormorant Garamond, DM Sans, Dancing Script -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Dancing+Script:wght@500;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+
+  <!-- Swiper.js CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+  <!-- Compiled Tailwind CSS -->
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+  <!-- HTMX & Alpine.js -->
+  <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.store('cart', {
+        count: {{ cart.total_items|default:0 }},
+        prevCount: {{ cart.total_items|default:0 }},
+        optimisticAdd(qty = 1) {
+          this.prevCount = this.count;
+          this.count += parseInt(qty) || 1;
+          this.renderBadge();
+        },
+        revert() {
+          this.count = this.prevCount;
+          this.renderBadge();
+        },
+        setCount(val) {
+          this.count = parseInt(val) || 0;
+          this.prevCount = this.count;
+          this.renderBadge();
+        },
+        renderBadge() {
+          const badge = document.getElementById('cart-count-badge');
+          if (badge) {
+            badge.dataset.count = this.count;
+            if (this.count > 0) {
+              badge.textContent = this.count;
+              badge.className = "absolute -top-1 -right-1 bg-heart text-white text-[11px] font-bold rounded-full h-5 w-5 flex items-center justify-center animate-pulse-subtle";
+            } else {
+              badge.textContent = "";
+              badge.className = "";
+            }
+          }
+        }
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.addEventListener('open-cart', () => {
+        window.dispatchEvent(new CustomEvent('open-cart'));
+      });
+
+      document.body.addEventListener('htmx:afterSwap', function(evt) {
+        const badge = document.getElementById('cart-count-badge');
+        if (badge && badge.dataset.count !== undefined && window.Alpine && Alpine.store && Alpine.store('cart')) {
+          Alpine.store('cart').setCount(badge.dataset.count);
+        }
+      });
+    });
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+
+  <!-- GSAP & ScrollTrigger -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!-- Swiper.js JS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body 
+  hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+  class="bg-cream text-cocoa antialiased selection:bg-blush selection:text-cocoa flex flex-col min-h-screen"
+>
+
+  <!-- Micro Entrada Loader (suave, respetando prefers-reduced-motion) -->
+  <div id="daca-loader" class="fixed inset-0 z-50 bg-cream flex flex-col items-center justify-center transition-opacity duration-500 pointer-events-none">
+    <div class="relative flex flex-col items-center">
+      <div class="w-16 h-16 rounded-full bg-white border-2 border-kraft/40 flex items-center justify-center shadow-warm">
+        <span class="text-heart text-2xl animate-heart-float">
+          <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </span>
+      </div>
+      <span class="font-serif text-sm tracking-widest text-cocoa mt-3 font-semibold uppercase">Daca Pastelería</span>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('daca-loader');
+      if (loader) {
+        setTimeout(() => {
+          loader.classList.add('opacity-0');
+          setTimeout(() => loader.remove(), 500);
+        }, 300);
+      }
+    });
+  </script>
+
+  <!-- Site Header -->
+  {% include 'includes/_header.html' %}
+
+  <!-- Main Content -->
+  <main class="flex-grow">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Site Footer -->
+  {% include 'includes/_footer.html' %}
+
+  <!-- Slide-over Cart Drawer -->
+  {% include 'includes/_cart_drawer.html' %}
+
+  <!-- Floating Toast Messages -->
+  {% include 'includes/_messages.html' %}
+
+  <!-- Global GSAP & Micro-interactions Init -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check prefers-reduced-motion
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReducedMotion && typeof gsap !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Animate elements with .gsap-reveal
+        gsap.utils.toArray('.gsap-reveal').forEach((el) => {
+          gsap.from(el, {
+            scrollTrigger: {
+              trigger: el,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+            y: 35,
+            opacity: 0,
+            duration: 0.8,
+            ease: 'power2.out',
+          });
+        });
+      }
+    });
+
+    // Re-bind or trigger on HTMX swap
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+      if (typeof Alpine !== 'undefined') {
+        // Alpine handles reactive attributes
+      }
+    });
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,62 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load daca_tags %}
+
+{% block dashboard_title %}Clientes Registrados{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+
+  <div class="flex items-center justify-between">
+    <span class="text-xs text-slate-500 font-semibold">{{ customers.count }} clientes registrados</span>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-bold border-b border-slate-100">
+          <tr>
+            <th class="py-3.5 px-6">Cliente</th>
+            <th class="py-3.5 px-6">Email</th>
+            <th class="py-3.5 px-6">Teléfono</th>
+            <th class="py-3.5 px-6">Fecha Registro</th>
+            <th class="py-3.5 px-6">Pedidos</th>
+            <th class="py-3.5 px-6 text-right">Gasto Total</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-cocoa">
+          {% for c in customers %}
+          <tr class="hover:bg-slate-50/70 transition-colors">
+            <td class="py-4 px-6">
+              <strong class="font-bold text-cocoa block text-sm">{{ c.get_full_name|default:c.username }}</strong>
+              <span class="text-slate-400 text-[11px]">@{{ c.username }}</span>
+            </td>
+            <td class="py-4 px-6 text-slate-600">
+              {{ c.email }}
+            </td>
+            <td class="py-4 px-6 text-slate-600 font-semibold">
+              {% if c.profile %}{{ c.profile.phone|default:"-" }}{% else %}-{% endif %}
+            </td>
+            <td class="py-4 px-6 text-slate-500">
+              {{ c.date_joined|date:"d/m/Y" }}
+            </td>
+            <td class="py-4 px-6">
+              <span class="badge-kraft text-[10px]">{{ c.orders_count }} pedidos</span>
+            </td>
+            <td class="py-4 px-6 text-right font-bold text-sm text-heart">
+              {{ c.total_spent|default:0|clp }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-12 text-center text-slate-400 text-xs">
+              No hay clientes registrados aún.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

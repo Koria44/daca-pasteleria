@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión · Daca Pastelería La Florida{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-16">
+  <div class="bg-white rounded-3xl p-8 sm:p-10 shadow-warm border border-kraft/20 space-y-6">
+    
+    <div class="text-center space-y-2">
+      <div class="w-16 h-16 rounded-full bg-cream-100 border border-kraft/30 flex items-center justify-center text-heart mx-auto mb-3">
+        <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </div>
+      <h1 class="font-serif text-3xl font-bold text-cocoa">Bienvenido de Vuelta</h1>
+      <p class="text-xs text-cocoa/70">Ingresa a tu cuenta para ver tus pedidos y agilizar tus compras.</p>
+    </div>
+
+    <form method="post" action="{% url 'accounts:login' %}" class="space-y-4">
+      {% csrf_token %}
+      {% if request.GET.next %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {% endif %}
+
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Usuario o Email</label>
+        <input 
+          type="text" 
+          name="username" 
+          required 
+          value="{{ username|default:'' }}"
+          placeholder="tu_usuario"
+          class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+        >
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-cocoa mb-1">Contraseña</label>
+        <input 
+          type="password" 
+          name="password" 
+          required 
+          placeholder="••••••••"
+          class="w-full rounded-2xl border-kraft/30 text-sm py-2.5 px-4 focus:ring-heart focus:border-heart bg-cream-50"
+        >
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="btn-primary w-full py-3.5 text-sm font-bold shadow-heart">
+          Iniciar Sesión
+        </button>
+      </div>
+    </form>
+
+    <div class="text-center pt-4 border-t border-kraft/15 text-xs text-cocoa/70 space-y-2">
+      <p>¿Aún no tienes cuenta? <a href="{% url 'accounts:register' %}" class="text-heart font-bold hover:underline">Regístrate aquí</a></p>
+      <p><a href="{% url 'core:home' %}" class="text-kraft-darker hover:underline">Volver a la tienda</a></p>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
